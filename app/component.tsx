@@ -5,8 +5,10 @@ import Image from "next/image"
 import { motion, useScroll, useTransform, useSpring, animate } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BookOpen, ChevronRight, Wallet, Sparkles, BookMarked, Users } from "lucide-react"
+import { BookOpen, ChevronRight, Wallet, Sparkles, BookMarked, Users, Check } from "lucide-react"
 import { useRouter } from 'next/navigation'
+import { web3Enable, web3Accounts } from '@polkadot/extension-dapp';
+import { Toast } from "@/components/ui/toast"
 
 export default function landingpage() {
   const [isConnected, setIsConnected] = useState(false)
@@ -27,15 +29,14 @@ export default function landingpage() {
 
   const parallaxY = useTransform(scrollYProgress, [0, 1], ["0%", "100%"])
 
+  const [wallet, setWallet] = useState({
+    address: '',
+    name: '',
+    connected: false
+  });
+
   const connectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        await window.ethereum.request({ method: 'eth_requestAccounts' })
-        setIsConnected(true)
-      } catch (error) {
-        console.error("User rejected connection")
-      }
-    }
+    
   }
 
   const container = {
@@ -142,12 +143,22 @@ export default function landingpage() {
           >
             <Button
               size="lg"
-              className="group"
               onClick={connectWallet}
+              className="group wallet-button"
+              disabled={wallet.connected}
             >
               <Wallet className="mr-2 h-4 w-4" />
-              Connect Wallet
-              <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              {wallet.connected ? (
+                <span className="flex items-center">
+                  {wallet.name}
+                  <Check className="ml-2 h-4 w-4 text-green-500" />
+                </span>
+              ) : (
+                <>
+                  Connect Polkadot Wallet
+                  <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </>
+              )}
             </Button>
             <Button 
               size="lg" 
