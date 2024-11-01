@@ -1,4 +1,4 @@
-# Literasea (文链书库)
+# Literasea 
 
 
 Welcome to **Literasea**, an innovative platform that merges Web3 technology with digital reading. Our mission is to reshape how books are owned and circulated by leveraging blockchain technology, giving each book a unique identity and enabling true ownership and co-creation of digital content.
