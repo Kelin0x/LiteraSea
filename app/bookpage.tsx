@@ -1,3 +1,5 @@
+'use client'
+
 import Image from "next/image"
 import { Bell, BookOpen, HelpCircle, Home, Library, Search, Settings, Check, Eye, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -275,8 +277,33 @@ const BackgroundGradient = () => {
 export default function BookPage() {
   const [activeTab, setActiveTab] = useState("popular")
 
+  const pageVariants = {
+    initial: {
+      opacity: 0,
+      scale: 0.98
+    },
+    animate: {
+      opacity: 1,
+      scale: 1
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.98
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-background/30 backdrop-blur-3xl relative">
+    <motion.div
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{
+        duration: 0.3,
+        ease: "easeOut"
+      }}
+      className="min-h-screen bg-background/30 backdrop-blur-3xl relative"
+    >
       <BackgroundGradient />
       
       <div className="relative z-10">
@@ -430,6 +457,6 @@ export default function BookPage() {
           </motion.div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

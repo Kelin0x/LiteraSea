@@ -2,14 +2,12 @@
 
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { motion, useScroll, useTransform, useSpring, animate } from "framer-motion"
+import { motion, useScroll, useTransform, useSpring, animate, useInView } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, ChevronRight, Wallet, Sparkles, BookMarked, Users, Check, Star, TrendingUp } from "lucide-react"
 import { useRouter } from 'next/navigation'
-import web3Future from "../public/images/web3-future.jpg"
-// import { web3Enable, web3Accounts } from '@polkadot/extension-dapp';
-// import { Toast } from "@/components/ui/toast"
+import { Code2, Fingerprint, BookOpenCheck, Coins, Shield } from "lucide-react"
 
 // 添加这个浮动元素配置
 const floatingElements = [
@@ -104,6 +102,217 @@ const BackgroundGradient = () => {
   )
 }
 
+// 添加导航栏组件
+const Navbar = () => {
+  const [scrolled, setScrolled] = useState(false)
+  const router = useRouter()
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
+
+  // 添加 connectWallet 函数
+  const connectWallet = async () => {
+    try {
+      console.log('Connecting wallet...')
+    } catch (error) {
+      console.error('Failed to connect wallet:', error)
+    }
+  }
+
+  // 添加 handleExplore 函数
+  const handleExplore = async () => {
+    // 创建过渡效果
+    const transition = document.createElement('div')
+    transition.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(59, 130, 246, 0.2), rgba(0, 0, 0, 0.9));
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    `
+    document.body.appendChild(transition)
+
+    // 淡入效果
+    requestAnimationFrame(() => {
+      transition.style.opacity = '1'
+    })
+
+    // 等待过渡动画
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    // 执行跳转
+    router.push('/bookpage')
+
+    // 在新页面加载后移除过渡遮罩
+    setTimeout(() => {
+      transition.style.opacity = '0'
+      setTimeout(() => {
+        transition.remove()
+      }, 300)
+    }, 100)
+  }
+
+  // 监听滚动
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  return (
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-background/80 backdrop-blur-lg shadow-lg' : 'bg-transparent'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex justify-between items-center py-4">
+          {/* Logo with glow effect */}
+          <motion.div 
+            className="flex items-center space-x-2 relative group"
+            whileHover={{ scale: 1.05 }}
+          >
+            <div className="absolute inset-0 bg-primary/20 blur-xl group-hover:blur-2xl transition-all duration-300 rounded-full" />
+            <BookOpen className="h-8 w-8 text-primary relative z-10" />
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 relative z-10">
+              NFT Books
+            </span>
+          </motion.div>
+
+          {/* Navigation Links with advanced hover effects */}
+          <div className="hidden md:flex items-center space-x-8">
+            {['Home', 'Features', 'Collection', 'About'].map((item, index) => (
+              <motion.div
+                key={item}
+                className="relative"
+                onHoverStart={() => setHoverIndex(index)}
+                onHoverEnd={() => setHoverIndex(null)}
+              >
+                <motion.a
+                  href={`#${item.toLowerCase()}`}
+                  className="text-foreground/80 hover:text-primary transition-colors relative z-10 py-2 px-4"
+                  whileHover={{ scale: 1.1 }}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  {item}
+                  {/* Glowing underline */}
+                  <motion.div
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-full"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: hoverIndex === index ? 1 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                  {/* Hover glow effect */}
+                  {hoverIndex === index && (
+                    <motion.div
+                      className="absolute inset-0 bg-primary/10 -z-10 rounded-lg blur-sm"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.2 }}
+                    />
+                  )}
+                  {/* Particle effect on hover */}
+                  {hoverIndex === index && (
+                    <motion.div
+                      className="absolute inset-0 -z-20"
+                      initial="initial"
+                      animate="animate"
+                    >
+                      {[...Array(5)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          className="absolute w-1 h-1 bg-primary rounded-full"
+                          initial={{
+                            x: 0,
+                            y: 0,
+                            opacity: 0,
+                          }}
+                          animate={{
+                            x: Math.random() * 40 - 20,
+                            y: Math.random() * 40 - 20,
+                            opacity: [0, 1, 0],
+                          }}
+                          transition={{
+                            duration: 0.8,
+                            delay: i * 0.1,
+                            repeat: Infinity,
+                            repeatType: "loop",
+                          }}
+                        />
+                      ))}
+                    </motion.div>
+                  )}
+                </motion.a>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Action Buttons with hover effects */}
+          <div className="flex items-center space-x-4">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden md:flex items-center gap-2 relative group overflow-hidden"
+                onClick={connectWallet}
+              >
+                {/* Button glow effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                  whileHover={{ scale: 1.2, rotate: 360 }}
+                  transition={{ duration: 0.8 }}
+                />
+                <Wallet className="h-4 w-4 relative z-10" />
+                <span className="relative z-10">Connect</span>
+              </Button>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+              whileHover={{ scale: 1.05 }}
+            >
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-primary to-purple-600 text-white relative group overflow-hidden"
+                onClick={handleExplore}
+              >
+                {/* Animated gradient background */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-primary via-purple-600 to-primary"
+                  animate={{
+                    x: ["0%", "100%", "0%"],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                />
+                <span className="relative z-10">Explore</span>
+                <ChevronRight className="ml-2 h-4 w-4 relative z-10" />
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </motion.nav>
+  )
+}
+
 export default function landingpage() {
   const [isConnected, setIsConnected] = useState(false)
   const targetRef = useRef<HTMLDivElement>(null)
@@ -130,7 +339,7 @@ export default function landingpage() {
   });
 
   const connectWallet = async () => {
-    
+
   }
 
   const container = {
@@ -166,28 +375,47 @@ export default function landingpage() {
   const router = useRouter()
 
   const handleExplore = async () => {
-    // 添加淡出动画
-    document.body.style.opacity = '0'
-    document.body.style.transition = 'opacity 0.3s ease'
-    
-    // 等待动画完成
+    // 创建过渡遮罩
+    const transition = document.createElement('div')
+    transition.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(59, 130, 246, 0.2), rgba(0, 0, 0, 0.9));
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    `
+    document.body.appendChild(transition)
+
+    // 淡入效果
+    requestAnimationFrame(() => {
+      transition.style.opacity = '1'
+    })
+
+    // 等待过渡动画
     await new Promise(resolve => setTimeout(resolve, 300))
-    
+
     // 执行跳转
     router.push('/books')
-    
-    // 恢复透明度
+
+    // 在新页面加载后移除过渡遮罩
     setTimeout(() => {
-      document.body.style.opacity = '1'
+      transition.style.opacity = '0'
+      setTimeout(() => {
+        transition.remove()
+      }, 300)
     }, 100)
   }
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar /> {/* 添加导航栏 */}
       {/* Hero Section */}
       <div ref={targetRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <BackgroundGradient />
-        {/* 浮动装饰元素 */}
+        {/* 浮动装饰元 */}
         {floatingElements.map((element, index) => (
           <motion.div
             key={index}
@@ -359,224 +587,254 @@ export default function landingpage() {
       </div>
 
       {/* Why Choose Us Section */}
-      <section className="relative overflow-hidden">
-        <BackgroundGradient />
-        {/* 内容部分 */}
-        <div className="relative z-10 py-24 px-4">
-          <div className="max-w-7xl mx-auto">
-            {/* 标题部分 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                Why Choose NFT Books
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Discover the advantages of our revolutionary digital reading platform
-              </p>
-            </motion.div>
-
-            {/* 特性卡片网格 */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  icon: <BookMarked className="h-6 w-6" />,
-                  title: "Permanent Ownership",
-                  description: "Your NFT books are truly yours forever, secured by blockchain technology",
-                  gradient: "from-blue-500 to-purple-500"
-                },
-                {
-                  icon: <TrendingUp className="h-6 w-6" />,
-                  title: "Investment Potential",
-                  description: "Digital books that can appreciate in value over time",
-                  gradient: "from-purple-500 to-pink-500"
-                },
-                {
-                  icon: <Users className="h-6 w-6" />,
-                  title: "Vibrant Community",
-                  description: "Connect with fellow readers and participate in exclusive discussions",
-                  gradient: "from-pink-500 to-blue-500"
-                },
-                {
-                  icon: <Star className="h-6 w-6" />,
-                  title: "Author Direct Support",
-                  description: "Support your favorite authors directly without intermediaries",
-                  gradient: "from-blue-500 to-purple-500"
-                },
-                {
-                  icon: <Sparkles className="h-6 w-6" />,
-                  title: "Exclusive Content",
-                  description: "Access special editions and author-exclusive materials",
-                  gradient: "from-purple-500 to-pink-500"
-                },
-                {
-                  icon: <BookOpen className="h-6 w-6" />,
-                  title: "Seamless Reading",
-                  description: "Enjoy your books across all devices with our modern reader",
-                  gradient: "from-pink-500 to-blue-500"
-                }
-              ].map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="relative group"
-                >
-                  <div className="p-6 bg-background/60 backdrop-blur-sm rounded-xl border transition-all duration-300 hover:shadow-xl hover:border-primary/50">
-                    {/* 图标容器 */}
-                    <motion.div 
-                      className={`h-12 w-12 rounded-xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center mb-4 text-white`}
-                      whileHover={{ rotate: [0, -10, 10, 0] }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      {feature.icon}
-                    </motion.div>
-                    
-                    {/* 标题 */}
-                    <h3 className="text-xl font-semibold mb-3 group-hover:text-primary transition-colors duration-300">
-                      {feature.title}
-                    </h3>
-                    
-                    {/* 描述 */}
-                    <p className="text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </p>
-
-                    {/* 悬浮装饰效果 */}
-                    <motion.div
-                      className="absolute inset-0 -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 0.05 }}
-                    >
-                      <div className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} blur-xl`} />
-                    </motion.div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <WhyChooseUsSection />
 
       {/* Featured Books Section */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden py-24">
         <BackgroundGradient />
-        <div className="relative z-10 py-24 px-4">
-          <div className="max-w-7xl mx-auto">
-            {/* 标题部分 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                Featured NFT Books
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Discover unique digital books from renowned authors
-              </p>
-            </motion.div>
-
-            {/* 走马灯部分 */}
-            <motion.div
-              className="overflow-hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <motion.div
-                className="flex gap-6"
+        
+        {/* 3D 旋转标题 */}
+        <motion.div
+          className="text-center mb-16 relative"
+          initial={{ perspective: 1000 }}
+        >
+          <motion.div
+            className="relative inline-block"
+            animate={{
+              rotateX: [0, 10, 0],
+              y: [0, -5, 0],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold">
+              <motion.span
+                className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary bg-[length:200%_auto]"
                 animate={{
-                  x: [0, -1920], // 根据实际内容宽度调整
+                  backgroundPosition: ['0%', '100%', '0%']
                 }}
                 transition={{
-                  x: {
-                    duration: 20,
-                    repeat: Infinity,
-                    ease: "linear",
-                  },
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "linear"
                 }}
               >
-                
-                {/* 重复两次书籍列表以实现无缝滚动 */}
-                {[...Array(2)].map((_, setIndex) => (
-                  <div key={setIndex} className="flex gap-6 shrink-0">
-                    {[
-                      { 
-                        title: "Crypto Tales", 
-                        author: "Alex River", 
-                        price: "0.1 ETH",
-                        rating: "4.8",
-                        category: "Fiction",
-                        image: "/images/1.jpg"
-                      },
-                      { 
-                        title: "Web3 Future", 
-                        author: "Sarah Chen", 
-                        price: "0.08 ETH",
-                        rating: "4.9",
-                        category: "Technology",
-                        image: "/images/2.jpg"
-                      },
-                      { 
-                        title: "Digital Dreams", 
-                        author: "Mike Peters", 
-                        price: "0.12 ETH",
-                        rating: "4.7",
-                        category: "Sci-Fi",
-                        image: "/images/3.jpg"
-                      },
-                      { 
-                        title: "Meta World", 
-                        author: "Lisa Wong", 
-                        price: "0.15 ETH",
-                        rating: "4.6",
-                        category: "Fantasy",
-                        image: "/images/4.jpg"
-                      }
-                    ].map((book, index) => (
+                Featured Collections
+              </motion.span>
+            </h2>
+            
+            {/* 装饰性下划线 */}
+            <motion.div
+              className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600"
+              animate={{
+                scaleX: [0.7, 1, 0.7]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* 3D 书籍展示区 */}
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {[
+              {
+                title: "Crypto Tales",
+                author: "Alex River",
+                price: "0.1 ETH",
+                rating: "4.8",
+                category: "Fiction",
+                image: "/images/1.jpg",
+                color: "from-blue-500 to-purple-500"
+              },
+              {
+                title: "Web3 Future",
+                author: "Sarah Chen",
+                price: "0.08 ETH",
+                rating: "4.9",
+                category: "Technology",
+                image: "/images/2.jpg",
+                color: "from-purple-500 to-pink-500"
+              },
+              {
+                title: "Digital Dreams",
+                author: "Mike Peters",
+                price: "0.12 ETH",
+                rating: "4.7",
+                category: "Sci-Fi",
+                image: "/images/3.jpg",
+                color: "from-pink-500 to-red-500"
+              },
+              {
+                title: "Meta World",
+                author: "Lisa Wong",
+                price: "0.15 ETH",
+                rating: "4.6",
+                category: "Fantasy",
+                image: "/images/4.jpg",
+                color: "from-red-500 to-orange-500"
+              }
+            ].map((book, index) => (
+              <motion.div
+                key={index}
+                className="group relative perspective-1000"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ z: 50 }}
+              >
+                {/* 3D 卡片容器 */}
+                <motion.div
+                  className="relative preserve-3d"
+                  whileHover={{ 
+                    rotateY: 15,
+                    rotateX: -10,
+                    scale: 1.05
+                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  {/* 卡片正面 */}
+                  <div className="relative bg-background/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                    {/* 书籍封面 */}
+                    <div className="aspect-[3/4] relative">
+                      <Image
+                        src={book.image}
+                        alt={book.title}
+                        fill
+                        className="object-cover rounded-t-xl transform transition-transform group-hover:scale-110 duration-500"
+                      />
+                      
+                      {/* 渐变遮罩 */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0" />
+                      
+                      {/* 分类标签 */}
                       <motion.div
-                        key={`${setIndex}-${index}`}
-                        className="w-72 shrink-0 group cursor-pointer"
-                        whileHover={{ y: -10 }}
-                        transition={{ type: "spring", stiffness: 400 }}
+                        className="absolute top-4 left-4"
+                        whileHover={{ scale: 1.1, rotate: [-5, 5, 0] }}
                       >
-                        <div className="relative aspect-[3/4] mb-4 rounded-xl overflow-hidden">
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
-                          <Image
-                            src={book.image}
-                            alt={book.title}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                          <div className="absolute bottom-4 left-4 right-4 z-20">
-                            <Badge className="mb-2 bg-primary/80 backdrop-blur-sm">
-                              {book.category}
-                            </Badge>
-                            <div className="flex items-center text-white">
-                              <Star className="w-4 h-4 fill-current text-yellow-400" />
-                              <span className="ml-1 text-sm">{book.rating}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
-                          {book.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">{book.author}</p>
-                        <p className="text-sm font-medium text-primary mt-1">{book.price}</p>
+                        <Badge className={`bg-gradient-to-r ${book.color} text-white`}>
+                          {book.category}
+                        </Badge>
                       </motion.div>
-                    ))}
+                      
+                      {/* 评分 */}
+                      <motion.div
+                        className="absolute top-4 right-4 flex items-center space-x-1 bg-black/50 rounded-full px-2 py-1 backdrop-blur-sm"
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Star className="w-4 h-4 text-yellow-500" />
+                        </motion.div>
+                        <span className="text-white text-sm">{book.rating}</span>
+                      </motion.div>
+                    </div>
+
+                    {/* 书籍信息 */}
+                    <div className="p-4">
+                      <motion.h3 
+                        className="text-lg font-semibold truncate group-hover:text-primary transition-colors"
+                        whileHover={{ x: 5 }}
+                      >
+                        {book.title}
+                      </motion.h3>
+                      <p className="text-sm text-muted-foreground mb-2">{book.author}</p>
+                      
+                      {/* 价格和按钮 */}
+                      <div className="flex items-center justify-between">
+                        <motion.p 
+                          className="text-primary font-medium"
+                          animate={{
+                            y: [0, -2, 0]
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity
+                          }}
+                        >
+                          {book.price}
+                        </motion.p>
+                        
+                        <motion.button
+                          className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${book.color} text-white`}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          View Details
+                        </motion.button>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* 3D 效果阴影 */}
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-black/10 to-black/30 transform translate-z-[-20px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.div>
+
+                {/* 悬浮时的粒子效果 */}
+                {[...Array(5)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className={`absolute w-1 h-1 rounded-full bg-gradient-to-r ${book.color}`}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{
+                      opacity: [0, 1, 0],
+                      scale: [0, 1, 0],
+                      x: [0, (Math.random() - 0.5) * 100],
+                      y: [0, (Math.random() - 0.5) * 100],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      delay: i * 0.2,
+                    }}
+                  />
                 ))}
               </motion.div>
-            </motion.div>
-          </div>
+            ))}
+          </motion.div>
+
+          {/* 底部 "View All" 按钮 */}
+          <motion.div 
+            className="text-center mt-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-primary to-purple-600 text-white px-8 py-6 text-lg font-semibold tracking-wide"
+              onClick={() => router.push('/collection')}
+            >
+              View All Collections
+              <motion.span
+                className="ml-2 inline-block"
+                animate={{
+                  x: [0, 4, 0]
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                →
+              </motion.span>
+            </Button>
+          </motion.div>
         </div>
       </section>
 
@@ -617,5 +875,387 @@ export default function landingpage() {
         {/* Footer content ... */}
       </footer>
     </div>
+  )
+}
+
+const WhyChooseUsSection = () => {
+  const containerRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  })
+
+  const springConfig = { stiffness: 300, damping: 30, bounce: 0.25 }
+  const spring = useSpring(scrollYProgress, springConfig)
+
+  const features = [
+    {
+      icon: <Code2 className="w-8 h-8" />,
+      title: "Blockchain Technology",
+      description: "Secure and transparent transactions powered by smart contracts",
+      gradient: "from-blue-500 to-cyan-500",
+      animation: {
+        hover: { scale: 1.05, rotate: 5 },
+        tap: { scale: 0.95 }
+      }
+    },
+    {
+      icon: <Fingerprint className="w-8 h-8" />,
+      title: "Unique Authentication",
+      description: "Each book is a unique NFT with verified authenticity",
+      gradient: "from-purple-500 to-pink-500",
+      animation: {
+        hover: { scale: 1.05, y: -10 },
+        tap: { scale: 0.95 }
+      }
+    },
+    {
+      icon: <BookOpenCheck className="w-8 h-8" />,
+      title: "Digital Ownership",
+      description: "True ownership of your digital book collection",
+      gradient: "from-green-500 to-emerald-500",
+      animation: {
+        hover: { scale: 1.05, rotate: -5 },
+        tap: { scale: 0.95 }
+      }
+    },
+    {
+      icon: <Coins className="w-8 h-8" />,
+      title: "Trading Platform",
+      description: "Buy, sell, and trade your NFT books seamlessly",
+      gradient: "from-yellow-500 to-orange-500",
+      animation: {
+        hover: { scale: 1.05, y: -10 },
+        tap: { scale: 0.95 }
+      }
+    },
+    {
+      icon: <Shield className="w-8 h-8" />,
+      title: "Secure Storage",
+      description: "Your digital assets are protected and encrypted",
+      gradient: "from-red-500 to-rose-500",
+      animation: {
+        hover: { scale: 1.05, rotate: 5 },
+        tap: { scale: 0.95 }
+      }
+    },
+    {
+      icon: <Users className="w-8 h-8" />,
+      title: "Community Features",
+      description: "Connect with readers and authors worldwide",
+      gradient: "from-indigo-500 to-violet-500",
+      animation: {
+        hover: { scale: 1.05, y: -10 },
+        tap: { scale: 0.95 }
+      }
+    }
+  ]
+
+  return (
+    <motion.section
+      ref={containerRef}
+      className="relative min-h-screen py-24 overflow-hidden bg-background"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
+      {/* 添加与 hero section 相同的背景渐变 */}
+      <BackgroundGradient />
+      
+      {/* 添加动态网格背景 */}
+      <motion.div
+        className="absolute inset-0 opacity-5"
+        animate={{
+          backgroundPosition: ["0% 0%", "100% 100%"]
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          repeatType: "reverse"
+        }}
+        style={{
+          backgroundImage: "radial-gradient(circle at center, #3B82F6 1px, transparent 1px)",
+          backgroundSize: "50px 50px"
+        }}
+      />
+
+      {/* 浮动装饰元素 - 与 hero section 风格一致 */}
+      <div className="absolute inset-0 -z-5">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 bg-primary/20 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, Math.random() * 100 - 50],
+              opacity: [0.2, 0.8, 0.2],
+              scale: [1, 1.5, 1]
+            }}
+            transition={{
+              duration: 5 + Math.random() * 5,
+              repeat: Infinity,
+              repeatType: "reverse"
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
+        {/* 标题部分 */}
+        <motion.div 
+          className="text-center mb-20 relative"
+          initial={{ y: 50 }}
+          whileInView={{ y: 0 }}
+          viewport={{ once: true }}
+        >
+          {/* 主标题 */}
+          <motion.div
+            className="relative inline-block"
+            animate={{
+              rotateX: [0, 5, 0],
+              y: [0, -5, 0],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6">
+              <motion.span
+                className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary bg-[length:200%_auto]"
+                animate={{
+                  backgroundPosition: ['0%', '100%', '0%']
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+              >
+                Why Choose
+              </motion.span>
+              <br />
+              <motion.span
+                className="inline-block relative"
+                animate={{
+                  color: ['#3B82F6', '#8B5CF6', '#3B82F6']
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+              >
+                NFT Books
+                {/* 装饰性下划线 */}
+                <motion.div
+                  className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600"
+                  animate={{
+                    scaleX: [0.7, 1, 0.7]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              </motion.span>
+            </h2>
+          </motion.div>
+
+          {/* 副标题 */}
+          <motion.div
+            className="max-w-3xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="relative inline-block">
+              <motion.p 
+                className="text-xl md:text-2xl text-muted-foreground font-medium"
+                animate={{
+                  y: [0, -2, 0]
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                <span className="text-primary font-semibold">Revolutionary</span> Digital Reading Experience
+                <br />
+                Powered by <span className="text-primary font-semibold">Blockchain Technology</span>
+              </motion.p>
+            </div>
+          </motion.div>
+
+          {/* 装饰性元素 */}
+          <motion.div
+            className="absolute -z-10 inset-0"
+            animate={{
+              rotate: [0, 360]
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          >
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute inset-0 border-2 border-primary/5 rounded-full"
+                style={{
+                  transform: `scale(${1 + i * 0.2})`,
+                }}
+              />
+            ))}
+          </motion.div>
+        </motion.div>
+
+        {/* 特性展示 - 增加背景模糊效果 */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              className="group relative"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.2 }}
+              whileHover={feature.animation.hover}
+              whileTap={feature.animation.tap}
+            >
+              {/* 卡片内容 - 调整背景透明度和模糊效果 */}
+              <div className="relative z-10 p-8 rounded-2xl bg-background/40 backdrop-blur-xl border border-primary/10 h-full">
+                <motion.div
+                  className={`w-16 h-16 rounded-xl mb-6 flex items-center justify-center bg-gradient-to-r ${feature.gradient}`}
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.8 }}
+                >
+                  {feature.icon}
+                </motion.div>
+
+                <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.description}</p>
+              </div>
+
+              {/* 卡片悬浮效果 */}
+              <motion.div
+                className="absolute -inset-2 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"
+                animate={{
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0]
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity
+                }}
+              />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* 底部装饰 */}
+        <motion.div
+          className="mt-20 text-center"
+          initial={{ y: 20 }}
+          whileInView={{ y: 0 }}
+          viewport={{ once: true }}
+        >
+          <motion.button
+            className="group relative inline-flex h-12 items-center justify-center overflow-hidden rounded-md bg-primary px-6 font-semibold text-white"
+            whileHover="hover"
+            whileTap="tap"
+            variants={{
+              hover: { scale: 1.02 },
+              tap: { scale: 0.98 }
+            }}
+          >
+            {/* 背景动画效果 */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-primary"
+              animate={{
+                x: ['-100%', '100%'],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+              style={{
+                backgroundSize: '200% 100%'
+              }}
+            />
+
+            {/* 按钮内容容器 */}
+            <motion.div
+              className="relative flex items-center gap-1.5"
+              variants={{
+                hover: {
+                  x: [-2, 0],
+                  transition: {
+                    duration: 0.3
+                  }
+                }
+              }}
+            >
+              {/* 文字 */}
+              <span className="relative text-lg font-bold tracking-wider">
+                Start Exploring
+              </span>
+
+              {/* 箭头图标 */}
+              <motion.div
+                variants={{
+                  hover: {
+                    x: [0, 4],
+                    transition: {
+                      duration: 0.3,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }
+                  }
+                }}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </motion.div>
+
+              {/* 悬浮时的光效 */}
+              <motion.div
+                className="absolute -inset-x-2 -inset-y-2 hidden rounded-lg group-hover:block"
+                initial={{ opacity: 0 }}
+                whileHover={{
+                  opacity: [0, 1, 0],
+                  transition: {
+                    duration: 1.5,
+                    repeat: Infinity
+                  }
+                }}
+              >
+                <div className="h-full w-full rounded-lg bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+              </motion.div>
+            </motion.div>
+
+            {/* 点击涟漪效果 */}
+            <motion.div
+              className="pointer-events-none absolute inset-0 rounded-md"
+              initial={{ scale: 0, opacity: 0.5 }}
+              whileTap={{
+                scale: 1.5,
+                opacity: 0,
+                transition: { duration: 0.4 }
+              }}
+            >
+              <div className="h-full w-full rounded-md bg-white" />
+            </motion.div>
+          </motion.button>
+        </motion.div>
+      </div>
+    </motion.section>
   )
 }
