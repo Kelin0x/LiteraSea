@@ -45,7 +45,7 @@ Transform your reading experience with blockchain-verified ownership. Each book 
 ## 🌊 Technology Stack
 
 <div align="center">
-  <img src="https://skillicons.dev/icons?i=ts,next,tailwind,ethereum,nodejs" alt="Tech Stack" />
+  <img src="https://skillicons.dev/icons?i=ts,next,tailwind,nodejs" alt="Tech Stack" />
 </div>
 
 - **Frontend**: Next.js, TailwindCSS, TypeScript
