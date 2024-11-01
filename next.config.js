@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
+  output: 'export',
+  basePath: '/literasea',
   images: {
-    domains: ['images.unsplash.com', 'placeholder.com'], // 如果需要的话
+    unoptimized: true,
   },
 }
 
