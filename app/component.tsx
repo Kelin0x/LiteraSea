@@ -142,7 +142,7 @@ const Navbar = () => {
     await new Promise(resolve => setTimeout(resolve, 300))
 
     // 执行跳转
-    router.push('/bookpage')
+    router.push('/books')
 
     // 在新页面加载后移除过渡遮罩
     setTimeout(() => {
@@ -819,7 +819,7 @@ export default function landingpage() {
               className="bg-gradient-to-r from-primary to-purple-600 text-white px-8 py-6 text-lg font-semibold tracking-wide"
               onClick={() => router.push('/collection')}
             >
-              View All Collections
+              
               <motion.span
                 className="ml-2 inline-block"
                 animate={{
@@ -839,35 +839,7 @@ export default function landingpage() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative overflow-hidden">
-        <BackgroundGradient />
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="relative z-10 max-w-4xl mx-auto text-center py-24 px-4"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-            Ready to Start Your NFT Book Collection?
-          </h2>
-          <p className="text-muted-foreground mb-8 text-lg">
-            Take part in our community and own your digital library today
-          </p>
-          <Button
-            size="lg"
-            onClick={connectWallet}
-            className="group relative overflow-hidden"
-          >
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity"
-              whileHover={{ scale: 1.05 }}
-            />
-            <Wallet className="mr-2 h-4 w-4" />
-            Connect Wallet to Begin
-            <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </motion.div>
-      </section>
+      <CallToAction />
 
       {/* Footer */}
       <footer className="relative overflow-hidden">
@@ -1257,5 +1229,96 @@ const WhyChooseUsSection = () => {
         </motion.div>
       </div>
     </motion.section>
+  )
+}
+
+const CallToAction = () => {
+  return (
+    <section className="relative overflow-hidden py-24">
+      {/* 只保留基础背景渐变 */}
+      <BackgroundGradient />
+      
+      {/* 浮动元素 */}
+      {floatingElements.map((element, index) => (
+        <motion.div
+          key={index}
+          className={`absolute ${element.position} opacity-20`}
+          animate={element.animation}
+          transition={{
+            duration: 3 + index,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut"
+          }}
+        >
+          {element.icon}
+        </motion.div>
+      ))}
+
+      {/* 原有内容保持不变 */}
+      <div className="relative z-10 max-w-4xl mx-auto text-center px-4">
+        {/* 主标题 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="space-y-6 mb-10"
+        >
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-pink-500">
+              Ready to Start Your NFT Book Collection?
+            </span>
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Take part in our community and own your digital library today
+          </p>
+        </motion.div>
+
+        {/* 连接钱包按钮 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+        >
+          <Button
+            size="lg"
+            className="group relative px-8 py-6 text-lg bg-gradient-to-r from-primary to-purple-600 hover:from-primary/80 hover:to-purple-600/80"
+            onClick={()=>connectWallet()}
+          >
+            {/* 按钮光效 */}
+            <motion.div
+              className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 rounded-lg"
+              animate={{
+                scale: [1, 1.5],
+                opacity: [0, 0.2, 0],
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+              }}
+            />
+            
+            {/* 按钮内容 */}
+            <span className="relative z-10 flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              Connect Wallet to Begin
+              <motion.span
+                animate={{ x: [0, 4, 0] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                →
+              </motion.span>
+            </span>
+          </Button>
+
+        </motion.div>
+            
+      </div>
+    </section>
   )
 }
