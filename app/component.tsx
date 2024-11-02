@@ -656,7 +656,7 @@ export default function landingpage() {
                 price: "0.1 ETH",
                 rating: "4.8",
                 category: "Fiction",
-                image: "/images/1.jpg",
+                image: "/LiteraSea/images/1.jpg",
                 color: "from-blue-500 to-purple-500"
               },
               {
@@ -665,7 +665,7 @@ export default function landingpage() {
                 price: "0.08 ETH",
                 rating: "4.9",
                 category: "Technology",
-                image: "/images/2.jpg",
+                image: "/LiteraSea/images/2.jpg",
                 color: "from-purple-500 to-pink-500"
               },
               {
@@ -674,7 +674,7 @@ export default function landingpage() {
                 price: "0.12 ETH",
                 rating: "4.7",
                 category: "Sci-Fi",
-                image: "/images/3.jpg",
+                image: "/LiteraSea/images/3.jpg",
                 color: "from-pink-500 to-red-500"
               },
               {
@@ -683,7 +683,7 @@ export default function landingpage() {
                 price: "0.15 ETH",
                 rating: "4.6",
                 category: "Fantasy",
-                image: "/images/4.jpg",
+                image: "/LiteraSea/images/4.jpg",
                 color: "from-red-500 to-orange-500"
               }
             ].map((book, index) => (
@@ -1233,6 +1233,16 @@ const WhyChooseUsSection = () => {
 }
 
 const CallToAction = () => {
+  // 添加 connectWallet 函数
+  const connectWallet = async () => {
+    try {
+      console.log('Connecting wallet...')
+      // 这里添加实际的钱包连接逻辑
+    } catch (error) {
+      console.error('Failed to connect wallet:', error)
+    }
+  }
+
   return (
     <section className="relative overflow-hidden py-24">
       {/* 只保留基础背景渐变 */}
@@ -1284,7 +1294,7 @@ const CallToAction = () => {
           <Button
             size="lg"
             className="group relative px-8 py-6 text-lg bg-gradient-to-r from-primary to-purple-600 hover:from-primary/80 hover:to-purple-600/80"
-            onClick={()=>connectWallet()}
+            onClick={() => connectWallet()}
           >
             {/* 按钮光效 */}
             <motion.div
