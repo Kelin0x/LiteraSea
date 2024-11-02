@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  basePath: '/literasea',
+  basePath: '/LiteraSea',
   images: {
     unoptimized: true,
   },
