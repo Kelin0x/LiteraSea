@@ -127,7 +127,7 @@ const Navbar = () => {
       background: radial-gradient(circle at center, rgba(59, 130, 246, 0.2), rgba(0, 0, 0, 0.9));
       z-index: 9999;
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.15s ease;
       backdrop-filter: blur(8px);
       pointer-events: none;
     `
@@ -139,7 +139,7 @@ const Navbar = () => {
     })
 
     // 等待过渡动画
-    await new Promise(resolve => setTimeout(resolve, 300))
+    await new Promise(resolve => setTimeout(resolve, 150))
 
     // 执行跳转
     router.push('/books')
@@ -149,8 +149,8 @@ const Navbar = () => {
       transition.style.opacity = '0'
       setTimeout(() => {
         transition.remove()
-      }, 300)
-    }, 100)
+      }, 150)
+    }, 50)
   }
 
   // 监听滚动
@@ -321,7 +321,7 @@ export default function landingpage() {
     offset: ["start start", "end start"]
   })
 
-  const scale = useTransform(scrollYProgress, [0, 0.7], [1.3, 0.6])
+  const scale = useTransform(scrollYProgress, [0, 0.7], [1.1, 0.6])
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "0%"])
   const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0])
 
@@ -383,7 +383,7 @@ export default function landingpage() {
       background: radial-gradient(circle at center, rgba(59, 130, 246, 0.2), rgba(0, 0, 0, 0.9));
       z-index: 9999;
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.15s ease;
       backdrop-filter: blur(8px);
       pointer-events: none;
     `
@@ -395,7 +395,7 @@ export default function landingpage() {
     })
 
     // 等待过渡动画
-    await new Promise(resolve => setTimeout(resolve, 300))
+    await new Promise(resolve => setTimeout(resolve, 150))
 
     // 执行跳转
     router.push('/books')
@@ -405,7 +405,7 @@ export default function landingpage() {
       transition.style.opacity = '0'
       setTimeout(() => {
         transition.remove()
-      }, 300)
+      }, 200)
     }, 100)
   }
 
@@ -656,7 +656,7 @@ export default function landingpage() {
                 price: "0.1 ETH",
                 rating: "4.8",
                 category: "Fiction",
-                image: "/LiteraSea/images/1.jpg",
+                image: "/images/1.jpg",
                 color: "from-blue-500 to-purple-500"
               },
               {
@@ -665,7 +665,7 @@ export default function landingpage() {
                 price: "0.08 ETH",
                 rating: "4.9",
                 category: "Technology",
-                image: "/LiteraSea/images/2.jpg",
+                image: "/images/2.jpg",
                 color: "from-purple-500 to-pink-500"
               },
               {
@@ -674,7 +674,7 @@ export default function landingpage() {
                 price: "0.12 ETH",
                 rating: "4.7",
                 category: "Sci-Fi",
-                image: "/LiteraSea/images/3.jpg",
+                image: "/images/3.jpg",
                 color: "from-pink-500 to-red-500"
               },
               {
@@ -683,7 +683,7 @@ export default function landingpage() {
                 price: "0.15 ETH",
                 rating: "4.6",
                 category: "Fantasy",
-                image: "/LiteraSea/images/4.jpg",
+                image: "/images/4.jpg",
                 color: "from-red-500 to-orange-500"
               }
             ].map((book, index) => (

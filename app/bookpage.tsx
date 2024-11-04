@@ -1,7 +1,7 @@
 'use client'
 
 import Image from "next/image"
-import { Bell, BookOpen, HelpCircle, Home, Library, Search, Settings, Check, Eye, MessageCircle } from "lucide-react"
+import { Bell, BookOpen, HelpCircle, Home, Library, Search, Settings, Check, Eye, MessageCircle, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState } from "react"
 import { useRouter } from 'next/navigation'
+
+const connectWallet = async () => {
+  try {
+    console.log('Connecting wallet...')
+    // 这里添加实际的钱包连接逻辑
+  } catch (error) {
+    console.error('Failed to connect wallet:', error)
+  }
+}
 
 const ReadingProgress = ({ book }: { book: any }) => {
   return (
@@ -364,6 +373,14 @@ export default function BookPage() {
                   </Button>
                   <Button variant="ghost" size="icon">
                     🌙
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    onClick={connectWallet}
+                  >
+                    <Wallet className="h-4 w-4" />
+                    <span>Connect Wallet</span>
                   </Button>
                   <motion.div whileHover={{ scale: 1.1 }}>
                     <Image
