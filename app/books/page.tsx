@@ -1,5 +1,5 @@
 'use client'
-import Bookpage from '../bookpage'
+import Bookpage from '../homepage/bookpage'
 
 export default function Books() {
   return <Bookpage />

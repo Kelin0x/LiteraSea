@@ -9,7 +9,7 @@ import { BookOpen, ChevronRight, Wallet, Sparkles, BookMarked, Users, Check, Sta
 import { useRouter } from 'next/navigation'
 import Navbar from "./landingpage/Navbar"
 import BackgroundGradient from "./landingpage/BackgroundGradient"
-import floatingElements from "./landingpage/floatingElements"
+import floatingElements from "./landingpage/FloatingElements"
 import CallToAction from "./landingpage/CallToAction"
 import WhyChooseUsSection from "./landingpage/WhyChooseUsSection"
 

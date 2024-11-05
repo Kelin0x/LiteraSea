@@ -1,6 +1,6 @@
 'use client'
-import Component from './component'
+import Landingpage from './landingpage'
 
 export default function Home() {
-  return <Component />
+  return <Landingpage />
 }
