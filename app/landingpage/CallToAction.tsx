@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Wallet } from 'lucide-react'
 import BackgroundGradient from './BackgroundGradient'
-import floatingElements from './floatingElements'
+// import floatingElements from './FloatingElements'
 
 const CallToAction = () => {
     // 添加 connectWallet 函数
@@ -21,22 +21,6 @@ const CallToAction = () => {
         {/* 只保留基础背景渐变 */}
         <BackgroundGradient />
         
-        {/* 浮动元素 */}
-        {floatingElements.map((element, index) => (
-          <motion.div
-            key={index}
-            className={`absolute ${element.position} opacity-20`}
-            animate={element.animation}
-            transition={{
-              duration: 3 + index,
-              repeat: Infinity,
-              repeatType: "reverse",
-              ease: "easeInOut"
-            }}
-          >
-            {element.icon}
-          </motion.div>
-        ))}
   
         {/* 原有内容保持不变 */}
         <div className="relative z-10 max-w-4xl mx-auto text-center px-4">
