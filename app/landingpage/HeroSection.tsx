@@ -80,18 +80,20 @@ const handleExplore = async () => {
     background: radial-gradient(circle at center, rgba(59, 130, 246, 0.4), rgba(0, 0, 0, 0.95));
     z-index: 9999;
     opacity: 0;
-    transition: opacity 0.3s ease-in-out;
+    transform: scale(1.1); // 初始缩放
+    transition: opacity 0.5s ease, transform 0.5s ease; // 同时过渡缩放和透明度
     pointer-events: none;
   `
   document.body.appendChild(transition)
 
-  // 淡入效果
+  // 淡入和缩小效果
   requestAnimationFrame(() => {
     transition.style.opacity = '1'
+    transition.style.transform = 'scale(1)' // 缩放到正常大小
   })
 
   // 等待过渡动画
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise(resolve => setTimeout(resolve, 500)) // 等待动画完成
 
   // 执行跳转
   router.push('/books')
@@ -99,9 +101,10 @@ const handleExplore = async () => {
   // 在新页面加载后移除过渡遮罩
   setTimeout(() => {
     transition.style.opacity = '0'
+    transition.style.transform = 'scale(1.1)' // 再次缩放
     setTimeout(() => {
       transition.remove()
-    }, 300)
+    }, 500) // 确保与淡出时间一致
   }, 100)
 }
     return (
