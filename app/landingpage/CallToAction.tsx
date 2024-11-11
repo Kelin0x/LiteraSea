@@ -33,7 +33,7 @@ const CallToAction = () => {
           >
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-pink-500">
-                Ready to Start Your NFT Book Collection?
+                Ready to Start Your Web3 Book Collection?
               </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">

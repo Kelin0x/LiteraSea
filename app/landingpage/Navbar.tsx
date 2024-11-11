@@ -26,7 +26,7 @@ const Navbar = () => {
             <div className="absolute inset-0 bg-primary/20 blur-xl group-hover:blur-2xl transition-all duration-300 rounded-full" />
             <BookOpen className="h-8 w-8 text-primary relative z-10" />
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 relative z-10">
-              NFT Books
+              Web3 Books
             </span>
           </motion.div>
 

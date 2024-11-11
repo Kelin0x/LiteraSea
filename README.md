@@ -72,6 +72,8 @@ Literasea revolutionizes digital reading by combining Web3 technology with immer
 | Interaction Update | Q3 2024 | Character battles, AR features |
 | Metaverse Integration | Q4 2024 | Virtual character worlds, Cross-platform support |
 
+准备开发合约
+
 ## 📸 Platform Preview
 
 <div align="center">

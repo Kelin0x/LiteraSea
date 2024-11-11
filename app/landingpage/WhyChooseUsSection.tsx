@@ -177,7 +177,7 @@ const WhyChooseUsSection = () => {
                     ease: "linear"
                   }}
                 >
-                  NFT Books
+                  Web3 Books
                   {/* 装饰性下划线 */}
                   <motion.div
                     className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600"

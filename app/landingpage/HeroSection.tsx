@@ -72,39 +72,37 @@ const CountAnimation = ({ value }: { value: string }) => {
 const router = useRouter()
 
 const handleExplore = async () => {
-  // 创建过渡遮罩
+  // 创建过渡容器
   const transition = document.createElement('div')
   transition.style.cssText = `
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.4), rgba(0, 0, 0, 0.95));
+    background: linear-gradient(to right, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
     z-index: 9999;
     opacity: 0;
-    transform: scale(1.1); // 初始缩放
-    transition: opacity 0.5s ease, transform 0.5s ease; // 同时过渡缩放和透明度
+    backdrop-filter: blur(8px);
     pointer-events: none;
   `
   document.body.appendChild(transition)
 
-  // 淡入和缩小效果
+  // 添加动画效果
   requestAnimationFrame(() => {
+    transition.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
     transition.style.opacity = '1'
-    transition.style.transform = 'scale(1)' // 缩放到正常大小
   })
 
   // 等待过渡动画
-  await new Promise(resolve => setTimeout(resolve, 500)) // 等待动画完成
+  await new Promise(resolve => setTimeout(resolve, 300))
 
   // 执行跳转
   router.push('/books')
 
-  // 在新页面加载后移除过渡遮罩
+  // 在新页面加载后移除过渡效果
   setTimeout(() => {
     transition.style.opacity = '0'
-    transition.style.transform = 'scale(1.1)' // 再次缩放
     setTimeout(() => {
       transition.remove()
-    }, 500) // 确保与淡出时间一致
+    }, 600)
   }, 100)
 }
     return (
@@ -204,7 +202,7 @@ const handleExplore = async () => {
             >
               with
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-red-500 relative group">
-                NFT Books
+                Web3 Books
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: [0.5, 1, 0.5] }}
