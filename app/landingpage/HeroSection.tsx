@@ -18,7 +18,7 @@ const { scrollYProgress } = useScroll({
   offset: ["start start", "end start"]
 })
 
-const scale = useTransform(scrollYProgress, [0, 0.7], [1.1, 0.6])
+const scale = useTransform(scrollYProgress, [0, 0.7], [1.1, 0.8])
 const y = useTransform(scrollYProgress, [0, 1], ["0%", "0%"])
 const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0])
 

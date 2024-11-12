@@ -14,7 +14,7 @@ import CallToAction from "./landingpage/CallToAction"
 import WhyChooseUsSection from "./landingpage/WhyChooseUsSection"
 import FeaturedBook from "./landingpage/FeaturedBook"
 import HeroSection from "./landingpage/HeroSection"
-
+import StackedCards from "./landingpage/StackedCards"
 
 
 
@@ -25,14 +25,18 @@ export default function landingpage() {
     <div>
       <Navbar />
 
-      <section id="Hoem">
+      <section id="Home">
         <HeroSection />
       </section>
 
       <section id="Feature">
         <WhyChooseUsSection />
       </section>
-
+      
+      <section id="StackedCards">
+        <StackedCards />
+      </section>
+      
       <section id="Book">
         <FeaturedBook />
       </section>
@@ -40,6 +44,7 @@ export default function landingpage() {
       <section id="Call">
         <CallToAction />
       </section>
+
     </div>
   )
 }
