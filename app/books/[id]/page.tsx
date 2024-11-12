@@ -1,6 +1,6 @@
 // 服务器组件
 import ReadingView from './ReadingView'
-import { books } from '@/mockdata'
+import { books } from '@lib/mockdata'
 
 export async function generateStaticParams() {
   return books.map((book) => ({
