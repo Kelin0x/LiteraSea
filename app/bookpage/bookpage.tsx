@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ethers } from "ethers"
 import { getNFTContract, getMarketplaceContract } from '../../utils/contract'
 
@@ -168,6 +168,7 @@ const BookPage = () => {
   const fetchNFTs = async () => {
     if (!window.ethereum) {
       setError("请先安装 MetaMask");
+      setLoading(false);
       return;
     }
 
@@ -195,8 +196,14 @@ const BookPage = () => {
 
           let metadata;
           try {
-            const response = await fetch(tokenURI);
-            metadata = await response.json();
+            // 检查tokenURI是否是JSON字符串
+            if (tokenURI.startsWith('{')) {
+              metadata = JSON.parse(tokenURI);
+            } else {
+              // 如果是URL，则进行fetch
+              const response = await fetch(tokenURI);
+              metadata = await response.json();
+            }
           } catch (error) {
             console.error('获取元数据失败:', error);
             metadata = {
@@ -217,6 +224,7 @@ const BookPage = () => {
         }
       }
 
+      console.log('获取到的NFTs:', totalNFTs);
       setNfts(totalNFTs);
     } catch (error) {
       console.error("获取NFT列表失败:", error);
@@ -247,74 +255,209 @@ const BookPage = () => {
 
 // 修改MintNFT组件，接收onMintSuccess回调
 const MintNFT = ({ onMintSuccess }: { onMintSuccess: () => Promise<void> }) => {
-  const [tokenURI, setTokenURI] = useState('');
-  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     image: ''
   });
-  const [submitType, setSubmitType] = useState<'direct' | 'form'>('direct');
+  const [tokenURI, setTokenURI] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [submitType, setSubmitType] = useState<'direct' | 'form'>('form');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFormSubmit = () => {
-    // 构建元数据JSON
-    const metadata = {
-      name: formData.name,
-      description: formData.description,
-      image: formData.image
-    };
-    // 将元数据转换为JSON字符串
-    setTokenURI(JSON.stringify(metadata));
-  };
+  // 处理图片选择
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const mintNFT = async () => {
-    if (!tokenURI) {
-      alert('请先输入或生成Token URI');
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+      alert('请选择图片文件');
       return;
     }
-    
-    console.log('开始铸造NFT...');
-    console.log('TokenURI:', tokenURI);
-    
+
+    // 验证文件大小（例如最大5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      alert('图片大小不能超过5MB');
+      return;
+    }
+
+    setImageFile(file);
+    // 创建预览URL
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  };
+
+  // 将图片转换为Base64
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // 上传图片到 Pinata
+  const uploadImageToPinata = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
     try {
-      setLoading(true);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('上传图片失败');
+      }
+
+      const data = await response.json();
+      // 返回完整的 Pinata URL
+      return `${process.env.NEXT_PUBLIC_PINATA_DOMAIN}/ipfs/${data.IpfsHash}`;
+    } catch (error) {
+      console.error('上传到 Pinata 失败:', error);
+      throw error;
+    }
+  };
+
+  // 上传元数据到 Pinata
+  const uploadMetadataToPinata = async (metadata: any): Promise<string> => {
+    try {
+      const response = await fetch('/api/uploadJson', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(metadata),
+      });
+
+      if (!response.ok) {
+        throw new Error('上传元数据失败');
+      }
+
+      const data = await response.json();
+      return data.IpfsHash;
+    } catch (error) {
+      console.error('上传元数据到 Pinata 失败:', error);
+      throw error;
+    }
+  };
+
+  // 修改表单提交函数
+  const handleFormSubmit = async () => {
+    if (!formData.name) {
+      alert('请输入NFT名称');
+      return;
+    }
+
+    if (!imageFile) {
+      alert('请上传图片');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. 首先上传图片到 Pinata
+      const imageUrl = await uploadImageToPinata(imageFile);
+      console.log('图片上传成功:', imageUrl);
+
+      // 2. 创建元数据对象
+      const metadata = {
+        name: formData.name,
+        description: formData.description,
+        image: imageUrl,
+        attributes: [] // 可以添加其他属性
+      };
+
+      // 3. 上传元数据到 Pinata
+      const metadataHash = await uploadMetadataToPinata(metadata);
+      console.log('元数据上传成功:', metadataHash);
+
+      // 4. 设置完整的元数据URI
+      const tokenURI = `${process.env.NEXT_PUBLIC_PINATA_DOMAIN}/ipfs/${metadataHash}`;
+      setTokenURI(tokenURI);
+
+      alert('元数据生成成功！');
+    } catch (error) {
+      console.error('处理失败:', error);
+      alert('生成元数据失败: ' + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 清理预览URL
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  // 添加铸造NFT的函数
+  const mintNFT = async () => {
+    if (!tokenURI) {
+      alert('请先生成元数据');
+      return;
+    }
+
+    if (!window.ethereum) {
+      alert('请先安装MetaMask');
+      return;
+    }
+
+    setLoading(true);
+    try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const signerAddress = await signer.getAddress();
       const nftContract = getNFTContract(signer);
-      
-      console.log('发送铸造交易...');
-      const tx = await nftContract.safeMint(signerAddress, tokenURI);
-      console.log('交易hash:', tx.hash);
-      
+
+      console.log('开始铸造NFT...');
+      console.log('使用的元数据:', tokenURI);
+
+      // 调用合约的铸造函数
+      const tx = await nftContract.safeMint(await signer.getAddress(), tokenURI);
+      console.log('交易已发送:', tx.hash);
+
+      // 等待交易确认
       const receipt = await tx.wait();
-      const event = receipt.logs.find(
-        (log: any) => log.eventName === 'Transfer'
-      );
+      console.log('交易已确认:', receipt);
+
+      // 清理表单数据
+      setTokenURI('');
+      setFormData({
+        name: '',
+        description: '',
+        image: ''
+      });
+      setImageFile(null);
+      setPreviewUrl('');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
+      // 显示成功消息
+      alert('NFT铸造成功！');
       
-      if (event) {
-        console.log('新铸造的NFT tokenId:', event.args[2].toString());
-        alert('NFT铸造成功！');
-        setTokenURI('');
-        setFormData({
-          name: '',
-          description: '',
-          image: ''
-        });
-        
-        // 调用父组件传入的刷新函数
+      // 刷新NFT列表
+      if (onMintSuccess) {
         await onMintSuccess();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('铸造失败:', error);
-      alert('铸造失败: ' + (error.message || '未知错误'));
+      alert('铸造失败: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4">
+    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">铸造新的NFT</h2>
       
       {/* 切换按钮 */}
@@ -370,6 +513,7 @@ const MintNFT = ({ onMintSuccess }: { onMintSuccess: () => Promise<void> }) => {
               placeholder="输入NFT名称"
             />
           </div>
+          
           <div>
             <label className="block text-sm font-medium mb-2">描述</label>
             <textarea
@@ -380,16 +524,69 @@ const MintNFT = ({ onMintSuccess }: { onMintSuccess: () => Promise<void> }) => {
               rows={3}
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium mb-2">图片URL</label>
-            <input
-              type="text"
-              value={formData.image}
-              onChange={(e) => setFormData({...formData, image: e.target.value})}
-              className="w-full p-2 border rounded"
-              placeholder="输入图片URL (IPFS或其他链接)"
-            />
+            <label className="block text-sm font-medium mb-2">上传图片</label>
+            <div className="space-y-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full p-2 border-2 border-dashed border-gray-300 rounded hover:border-gray-400 focus:outline-none"
+              >
+                <div className="text-center">
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-400"
+                    stroke="currentColor"
+                    fill="none"
+                    viewBox="0 0 48 48"
+                  >
+                    <path
+                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <div className="text-sm text-gray-600">
+                    点击选择图片或拖拽图片到此处
+                  </div>
+                </div>
+              </button>
+
+              {previewUrl && (
+                <div className="mt-4">
+                  <img
+                    src={previewUrl}
+                    alt="预览"
+                    className="max-w-full h-48 object-cover rounded"
+                  />
+                  <button
+                    onClick={() => {
+                      setImageFile(null);
+                      setPreviewUrl('');
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = '';
+                      }
+                    }}
+                    className="mt-2 text-red-500 hover:text-red-700"
+                  >
+                    删除图片
+                  </button>
+                </div>
+              )}
+
+              <p className="text-sm text-gray-500 mt-2">
+                支持 JPG、PNG 格式，大小不超过5MB
+              </p>
+            </div>
           </div>
+
           <button
             onClick={handleFormSubmit}
             className="w-full p-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded"
