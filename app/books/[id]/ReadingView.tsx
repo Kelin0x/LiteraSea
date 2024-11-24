@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { IoBookOutline, IoSettingsOutline, IoMenuOutline, IoSunnyOutline, IoMoonOutline } from 'react-icons/io5'
+import { IoBookOutline, IoSettingsOutline, IoMenuOutline, IoSunnyOutline, IoMoonOutline, IoClose } from 'react-icons/io5'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { FloatingBall } from '../../components/FloatingBall'
 import { ethers } from 'ethers'
 import { toast } from 'react-hot-toast'
-import { COMMENT_CONTRACT_ADDRESS } from '../../../config/contracts.json'
 import { getCommentContract } from '@/utils/contract'
 
 interface Chapter {
@@ -45,6 +44,8 @@ export default function ReadingView({ book }: { book: Book }) {
   const [isLoadingComments, setIsLoadingComments] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedTextComments, setSelectedTextComments] = useState<Comment[]>([])
+  const [showCommentsList, setShowCommentsList] = useState(false)
 
   // 切换深色模式
   useEffect(() => {
@@ -189,50 +190,156 @@ export default function ReadingView({ book }: { book: Book }) {
 
   // 修改渲染评论的函数
   const renderContentWithComments = (content: string) => {
-    // 获取当前章节的评论
     const chapterComments = comments.filter(c => c.chapterId === currentChapter)
     if (!chapterComments.length) return content
 
     let lastIndex = 0
     const result = []
     
-    // 按照文本位置排序评论
-    const sortedComments = [...chapterComments].sort((a, b) => 
-      content.indexOf(a.selectedText) - content.indexOf(b.selectedText)
-    )
+    // 找出所有需要标注的文本范围
+    const textRanges: { start: number; end: number; comments: Comment[] }[] = []
+    
+    chapterComments.forEach(comment => {
+      const start = content.indexOf(comment.selectedText)
+      if (start === -1) return
+      
+      const end = start + comment.selectedText.length
+      
+      // 检查是否与现有范围重叠
+      let merged = false
+      for (const range of textRanges) {
+        // 如果有重叠，合并范围
+        if (!(end < range.start || start > range.end)) {
+          range.start = Math.min(range.start, start)
+          range.end = Math.max(range.end, end)
+          range.comments.push(comment)
+          merged = true
+          break
+        }
+      }
+      
+      // 如果没有重叠，添加新范围
+      if (!merged) {
+        textRanges.push({
+          start,
+          end,
+          comments: [comment]
+        })
+      }
+    })
 
-    for (const comment of sortedComments) {
-      const index = content.indexOf(comment.selectedText, lastIndex)
-      if (index === -1) continue
+    // 按开始位置排序
+    textRanges.sort((a, b) => a.start - b.start)
 
+    // 渲染文本
+    for (const range of textRanges) {
       // 添加评论前的普通文本
-      result.push(content.slice(lastIndex, index))
+      if (range.start > lastIndex) {
+        result.push(content.slice(lastIndex, range.start))
+      }
 
       // 添加带注释的文本
       result.push(
         <span
-          key={comment.tokenId}
+          key={`${range.start}-${range.end}`}
           className="border-b border-dashed border-amber-500 cursor-pointer group relative"
+          onClick={() => {
+            setSelectedTextComments(range.comments)
+            setShowCommentsList(true)
+          }}
         >
-          {comment.selectedText}
+          {content.slice(range.start, range.end)}
           <div className="hidden group-hover:block absolute bottom-full left-0 w-64 p-3 rounded-lg shadow-lg bg-white dark:bg-gray-800 z-10 mb-2">
-            <p className="text-sm">{comment.commentText}</p>
-            <div className="text-xs text-gray-500 mt-2">
-              <p>评论者: {comment.author.slice(0, 6)}...{comment.author.slice(-4)}</p>
-              <p>{new Date(comment.timestamp).toLocaleString()}</p>
-            </div>
+            <p className="text-xs text-gray-500 mb-1">
+              {range.comments.length} 条评论
+            </p>
+            <p className="text-sm">点击查看所有评论</p>
           </div>
         </span>
       )
 
-      lastIndex = index + comment.selectedText.length
+      lastIndex = range.end
     }
 
     // 添加剩余的文本
-    result.push(content.slice(lastIndex))
+    if (lastIndex < content.length) {
+      result.push(content.slice(lastIndex))
+    }
 
     return result
   }
+
+  // 定义 CommentsList 组件
+  const CommentsList = ({ comments, onClose }: { comments: Comment[], onClose: () => void }) => (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-40"
+        onClick={onClose}
+      />
+      <motion.div
+        drag
+        dragConstraints={{
+          top: -300,
+          left: -500,
+          right: 500,
+          bottom: 300,
+        }}
+        dragElastic={0.1}
+        dragTransition={{ bounceStiffness: 300, bounceDamping: 20 }}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+          w-[480px] p-6 rounded-2xl shadow-lg z-50 cursor-move
+          ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
+      >
+        <div className="cursor-default">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold">评论列表</h3>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <IoClose className="w-5 h-5" />
+            </button>
+          </div>
+          
+          <div className="mb-4 p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
+            <p className="text-sm">{comments[0]?.selectedText}</p>
+          </div>
+
+          <div className="space-y-4 max-h-[400px] overflow-y-auto">
+            {comments.map((comment) => (
+              <div
+                key={comment.tokenId}
+                className={`p-4 rounded-lg ${
+                  isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white">
+                      {comment.author.slice(2, 4)}
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {comment.author.slice(0, 6)}...{comment.author.slice(-4)}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {new Date(comment.timestamp).toLocaleString()}
+                  </span>
+                </div>
+                <p className="text-sm">{comment.commentText}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </>
+  )
 
   return (
     <div className={`min-h-screen transition-colors duration-500 
@@ -537,6 +644,16 @@ export default function ReadingView({ book }: { book: Book }) {
           }}
         />
       </div>
+
+      {/* 添加评论列表模态框 */}
+      <AnimatePresence>
+        {showCommentsList && (
+          <CommentsList
+            comments={selectedTextComments}
+            onClose={() => setShowCommentsList(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
