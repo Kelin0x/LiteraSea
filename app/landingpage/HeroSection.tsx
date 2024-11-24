@@ -95,7 +95,7 @@ const handleExplore = async () => {
   await new Promise(resolve => setTimeout(resolve, 300))
 
   // 执行跳转
-  router.push('/books')
+  router.push('/marketplace')
 
   // 在新页面加载后移除过渡效果
   setTimeout(() => {
@@ -236,13 +236,13 @@ const handleExplore = async () => {
             initial="hidden"
             animate="show"
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            className="flex flex-col sm:flex-row gap-6 justify-center items-center mx-auto max-w-xl"
           >
-            {/* Connect Wallet Button - 使用经典蓝色 */}
+            {/* Connect Wallet Button */}
             <Button
               size="lg"
               onClick={connectWallet}
-              className="group wallet-button relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0 text-white shadow-lg hover:shadow-blue-200/50 transition-all duration-300"
+              className="w-full sm:w-[200px] group wallet-button relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0 text-white shadow-lg hover:shadow-blue-200/50 transition-all duration-300"
               disabled={wallet.connected}
             >
               <motion.div
@@ -263,11 +263,11 @@ const handleExplore = async () => {
               )}
             </Button>
 
-            {/* Explore Collection Button - 使用经典紫色 */}
+            {/* Explore Collection Button */}
             <Button 
               size="lg" 
-              variant="outline" 
-              className="group relative overflow-hidden border-purple-500 hover:border-purple-600 text-purple-600 hover:text-purple-700 bg-white hover:bg-purple-50 transition-all duration-300"
+              variant="outline"
+              className="w-full sm:w-[200px] group relative overflow-hidden border-purple-500 hover:border-purple-600 text-purple-600 hover:text-purple-700 bg-white hover:bg-purple-50 transition-all duration-300"
               onClick={handleExplore}
             >
               <motion.div
