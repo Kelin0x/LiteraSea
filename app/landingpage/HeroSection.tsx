@@ -238,21 +238,22 @@ const handleExplore = async () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
+            {/* Connect Wallet Button - 使用经典蓝色 */}
             <Button
               size="lg"
               onClick={connectWallet}
-              className="group wallet-button relative overflow-hidden"
+              className="group wallet-button relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0 text-white shadow-lg hover:shadow-blue-200/50 transition-all duration-300"
               disabled={wallet.connected}
             >
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
                 whileHover={{ scale: 1.05 }}
               />
               <Wallet className="mr-2 h-4 w-4" />
               {wallet.connected ? (
                 <span className="flex items-center">
                   {wallet.name}
-                  <Check className="ml-2 h-4 w-4 text-green-500" />
+                  <Check className="ml-2 h-4 w-4 text-green-400" />
                 </span>
               ) : (
                 <span className="flex items-center">
@@ -261,14 +262,16 @@ const handleExplore = async () => {
                 </span>
               )}
             </Button>
+
+            {/* Explore Collection Button - 使用经典紫色 */}
             <Button 
               size="lg" 
               variant="outline" 
-              className="group relative overflow-hidden"
+              className="group relative overflow-hidden border-purple-500 hover:border-purple-600 text-purple-600 hover:text-purple-700 bg-white hover:bg-purple-50 transition-all duration-300"
               onClick={handleExplore}
             >
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-primary/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute inset-0 bg-gradient-to-r from-purple-50 to-purple-100/50 opacity-0 group-hover:opacity-100 transition-opacity"
                 whileHover={{ scale: 1.05 }}
               />
               <BookOpen className="mr-2 h-4 w-4" />

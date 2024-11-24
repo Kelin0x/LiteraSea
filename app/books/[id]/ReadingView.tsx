@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { IoBookOutline, IoSettingsOutline, IoMenuOutline, IoSunnyOutline, IoMoonOutline } from 'react-icons/io5'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { FloatingBall } from '../../components/FloatingBall'
 
 interface Chapter {
   id: number
@@ -441,6 +442,19 @@ export default function ReadingView({ book }: { book: Book }) {
           </>
         )}
       </AnimatePresence>
+
+      {/* 添加悬浮球组件 */}
+      <div className={`${showCatalog || showSettings || showCommentModal ? 'hidden' : 'block'}`}>
+        <FloatingBall 
+          bookTitle={book.title}
+          isDarkMode={isDarkMode}
+          currentChapter={book.chapters[currentChapter].title}
+          onAskQuestion={(question) => {
+            // 这里可以处理用户提问，例如调用 AI API
+            console.log('用户提问:', question);
+          }}
+        />
+      </div>
     </div>
   )
 }

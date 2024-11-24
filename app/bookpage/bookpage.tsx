@@ -23,6 +23,7 @@ const Navbar = () => {
   const [isConnected, setIsConnected] = useState(false)
   const [chainId, setChainId] = useState<string>("")
   const [isCorrectNetwork, setIsCorrectNetwork] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
 
   // 自动连接钱包
   const autoConnectWallet = async () => {
@@ -57,6 +58,15 @@ const Navbar = () => {
     }
   };
 
+  // 添加滚动监听
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // 组件加载时自动连接
   useEffect(() => {
     autoConnectWallet();
@@ -88,83 +98,121 @@ const Navbar = () => {
     };
   }, []);
 
-  // 替换原来的 ConnectButton 部分
+  // 重新设计的钱包按钮
   const WalletButton = () => (
     <button
       onClick={autoConnectWallet}
-      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+      className={`
+        relative overflow-hidden group
+        px-6 py-2.5 rounded-xl
+        bg-gradient-to-r from-violet-600 to-indigo-600
+        hover:from-violet-500 hover:to-indigo-500
+        text-white font-medium
+        transform transition-all duration-300
+        hover:scale-105 hover:shadow-[0_0_20px_rgba(124,58,237,0.5)]
+        active:scale-95
+      `}
     >
-      {isConnected ? `${account.slice(0, 6)}...${account.slice(-4)}` : "连接钱包"}
+      <span className="relative z-10 flex items-center">
+        {isConnected ? (
+          <>
+            <div className="w-2 h-2 rounded-full bg-green-400 mr-2 animate-pulse" />
+            {`${account.slice(0, 6)}...${account.slice(-4)}`}
+          </>
+        ) : (
+          <>
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            连接钱包
+          </>
+        )}
+      </span>
     </button>
   )
 
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className={`
+      fixed top-0 left-0 right-0 z-50
+      transition-all duration-500 ease-in-out
+      ${isScrolled 
+        ? 'bg-white/80 backdrop-blur-md shadow-lg' 
+        : 'bg-transparent'}
+    `}>
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between h-16">
-          {/* 左侧菜单 */}
-          <div className="flex items-center">
+        <div className="flex justify-between items-center h-20">
+          {/* Logo 区域 */}
+          <div className="flex-shrink-0 flex items-center pl-2">
+            <Link href="/" className="group flex items-center space-x-2">
+              <div className="relative">
+                <span className="absolute -inset-1 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-300"></span>
+                <span className="relative text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                  LitearSea
+                </span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-1">
+            {['Marketplace', 'My NFT'].map((item, index) => (
+              <Link
+                key={item}
+                href={item === 'Marketplace' ? '/marketplace' : '/mynft'}
+                className="group relative px-5 py-2 mx-1"
+              >
+                <span className="relative z-10 text-gray-700 group-hover:text-white transition-colors duration-300">
+                  {item}
+                </span>
+                <span className="absolute inset-0 w-full h-full transform scale-0 group-hover:scale-100 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg transition-transform duration-300 ease-out" />
+              </Link>
+            ))}
+            <div className="ml-4">
+              <WalletButton />
+            </div>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-md hover:bg-gray-100"
+              className="relative w-10 h-10 focus:outline-none group"
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
+              <div className="relative flex overflow-hidden items-center justify-center w-[50px] h-[50px] transform transition-all duration-300">
+                <div className="flex flex-col justify-between w-[24px] h-[20px] transform transition-all duration-300 origin-center overflow-hidden">
+                  <div className={`bg-gradient-to-r from-violet-600 to-indigo-600 h-[2px] w-7 transform transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-2.5' : ''}`} />
+                  <div className={`bg-gradient-to-r from-violet-600 to-indigo-600 h-[2px] w-7 transform transition-all duration-300 ${isMenuOpen ? 'opacity-0' : ''}`} />
+                  <div className={`bg-gradient-to-r from-violet-600 to-indigo-600 h-[2px] w-7 transform transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-2.5' : ''}`} />
+                </div>
+              </div>
             </button>
-          </div>
-
-          {/* 中间导航链接 */}
-          <div className="flex items-center space-x-8">
-            <Link
-              href="/marketplace"
-              className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Marketplace
-            </Link>
-            <Link
-              href="/mynft"
-              className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              My NFT
-            </Link>
-          </div>
-
-          {/* 右侧连接钱包按钮 - 替换原来的 ConnectButton */}
-          <div className="flex items-center">
-            <WalletButton />
           </div>
         </div>
 
-        {/* 移动端菜单 */}
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1">
+        {/* Mobile Navigation */}
+        <div
+          className={`
+            md:hidden
+            transform transition-all duration-300 ease-in-out
+            ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
+          `}
+        >
+          <div className="px-2 pt-2 pb-3 space-y-1 bg-white/90 backdrop-blur-md rounded-2xl shadow-lg mt-2 border border-gray-100">
+            {['Marketplace', 'My NFT'].map((item) => (
               <Link
-                href="/marketplace"
-                className="block text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium"
+                key={item}
+                href={item === 'Marketplace' ? '/marketplace' : '/mynft'}
+                className="block px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:bg-gradient-to-r hover:from-violet-500 hover:to-indigo-500 hover:text-white transition-all duration-300"
               >
-                Marketplace
+                {item}
               </Link>
-              <Link
-                href="/mynft"
-                className="block text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium"
-              >
-                My NFT
-              </Link>
+            ))}
+            <div className="px-4 py-3">
+              <WalletButton />
             </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   )
@@ -417,7 +465,7 @@ const MintNFT = ({ onMintSuccess }: { onMintSuccess: () => Promise<void> }) => {
       });
 
       if (!response.ok) {
-        throw new Error('上传元数据失败');
+        throw new Error('上传元数���失败');
       }
 
       const data = await response.json();
@@ -582,7 +630,7 @@ const MintNFT = ({ onMintSuccess }: { onMintSuccess: () => Promise<void> }) => {
           </p>
         </div>
       ) : (
-        // 表单填写���式
+        // 表单填写式
         <div className="space-y-4 mb-4">
           <div>
             <label className="block text-sm font-medium mb-2">NFT名称</label>
