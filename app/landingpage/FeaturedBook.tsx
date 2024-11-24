@@ -7,8 +7,6 @@ const FeaturedBook = () => {
   const books = [
     {
       title: "Crypto Tales",
-      author: "Alex River",
-      price: "0.1 ETH",
       rating: "4.8",
       category: "Fiction",
       image: "/images/1.png",
@@ -16,8 +14,6 @@ const FeaturedBook = () => {
     },
     {
       title: "Web3 Future",
-      author: "Sarah Chen",
-      price: "0.08 ETH",
       rating: "4.9",
       category: "Technology",
       image: "/images/2.png",
@@ -25,8 +21,6 @@ const FeaturedBook = () => {
     },
     {
       title: "Digital Dreams",
-      author: "Mike Peters",
-      price: "0.12 ETH",
       rating: "4.7",
       category: "Sci-Fi",
       image: "/images/3.png",
@@ -34,8 +28,6 @@ const FeaturedBook = () => {
     },
     {
       title: "Meta World",
-      author: "Lisa Wong",
-      price: "0.15 ETH",
       rating: "4.6",
       category: "Fantasy",
       image: "/images/4.png",
@@ -95,13 +87,9 @@ const FeaturedBook = () => {
                 <h3 className="text-lg font-semibold truncate group-hover:text-blue-600 transition-colors">
                   {book.title}
                 </h3>
-                <p className="text-sm text-gray-500 mb-2">{book.author}</p>
                 
-                {/* 价格和按钮 */}
-                <div className="flex items-center justify-between">
-                  <p className="text-blue-600 font-medium">
-                    {book.price}
-                  </p>
+                {/* 按钮 - 修改为居中显示 */}
+                <div className="flex justify-center">
                   <button
                     className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${book.color} text-white
                               hover:shadow-lg transition-all duration-300 hover:scale-105`}

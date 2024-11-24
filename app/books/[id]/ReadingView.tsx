@@ -5,6 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { IoBookOutline, IoSettingsOutline, IoMenuOutline, IoSunnyOutline, IoMoonOutline } from 'react-icons/io5'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { FloatingBall } from '../../components/FloatingBall'
+import { ethers } from 'ethers'
+import { toast } from 'react-hot-toast'
+import { COMMENT_CONTRACT_ADDRESS } from '../../../config/contracts.json'
+import { getCommentContract } from '@/utils/contract'
 
 interface Chapter {
   id: number
@@ -20,17 +24,13 @@ interface Book {
 }
 
 interface Comment {
-  id: string
-  chapterId: number
-  text: string
-  selectedText: string
-  timestamp: number
-}
-
-interface CommentState {
-  [bookId: string]: {
-    [chapterId: number]: Comment[]
-  }
+  tokenId: string;     // NFT token ID
+  bookId: string;      // 书籍ID
+  chapterId: number;   // 章节ID
+  selectedText: string; // 选中的文本
+  commentText: string;  // 评论内容
+  timestamp: number;    // 时间戳
+  author: string;      // 评论者地址
 }
 
 export default function ReadingView({ book }: { book: Book }) {
@@ -41,8 +41,10 @@ export default function ReadingView({ book }: { book: Book }) {
   const [fontSize, setFontSize] = useState(18)
   const [selectedText, setSelectedText] = useState('')
   const [showCommentModal, setShowCommentModal] = useState(false)
-  const [comments, setComments] = useLocalStorage<CommentState>('book-comments', {})
+  const [comments, setComments] = useState<Comment[]>([])
+  const [isLoadingComments, setIsLoadingComments] = useState(false)
   const [commentText, setCommentText] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // 切换深色模式
   useEffect(() => {
@@ -75,77 +77,162 @@ export default function ReadingView({ book }: { book: Book }) {
     }
   }
 
-  // 添加评论
-  const handleAddComment = () => {
-    if (!commentText.trim()) return
-
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      chapterId: currentChapter,
-      text: commentText,
-      selectedText,
-      timestamp: Date.now()
-    }
-
-    setComments(prev => ({
-      ...prev,
-      [book.id]: {
-        ...prev[book.id],
-        [currentChapter]: [
-          ...(prev[book.id]?.[currentChapter] || []),
-          newComment
-        ]
+  // 连接钱包
+  const connectWallet = async () => {
+    try {
+      if (!window.ethereum) {
+        toast.error('请安装 MetaMask!')
+        return null
       }
-    }))
-
-    setShowCommentModal(false)
-    setSelectedText('')
-    setCommentText('')
+      
+      const provider = new ethers.BrowserProvider(window.ethereum)
+      await provider.send("eth_requestAccounts", [])
+      const signer = await provider.getSigner()
+      return signer
+    } catch (error) {
+      console.error('连接钱包失败:', error)
+      toast.error('连接钱包失败')
+      return null
+    }
   }
 
-  // 添加一个辅助函数来处理文本标注
-  const renderContentWithComments = (content: string, comments: Comment[]) => {
-    if (!comments?.length) return content;
+  // 加载评论
+  const loadComments = async () => {
+    try {
+      setIsLoadingComments(true)
+      if (!window.ethereum) return
 
-    let lastIndex = 0;
-    const result = [];
+      const provider = new ethers.BrowserProvider(window.ethereum)
+      const signer = await provider.getSigner()
+      const contract = getCommentContract(signer)
+
+      // 获取当前 tokenId（用于知道要遍历多少个评论）
+      const currentTokenId = await contract.getCurrentTokenId()
+      const commentsData: Comment[] = []
+
+      // 遍历所有评论
+      for (let i = 1; i <= Number(currentTokenId); i++) {
+        try {
+          const comment = await contract.getComment(i)
+          // 只获取当前书籍的评论
+          if (comment.bookId === book.id) {
+            commentsData.push({
+              tokenId: i.toString(),
+              bookId: comment.bookId,
+              chapterId: Number(comment.chapterId),
+              selectedText: comment.selectedText,
+              commentText: comment.commentText,
+              timestamp: Number(comment.timestamp),
+              author: comment.author
+            })
+          }
+        } catch (error) {
+          console.error(`获取评论 ${i} 失败:`, error)
+        }
+      }
+
+      setComments(commentsData)
+    } catch (error) {
+      console.error('加载评论失败:', error)
+      toast.error('加载评论失败')
+    } finally {
+      setIsLoadingComments(false)
+    }
+  }
+
+  // 在组件加载和章节切换时加载评论
+  useEffect(() => {
+    loadComments()
+  }, [book.id, currentChapter])
+
+  // 添加评论
+  const handleAddComment = async () => {
+    if (!commentText.trim()) return
+
+    try {
+      setIsSubmitting(true)
+      
+      const signer = await connectWallet()
+      if (!signer) return
+
+      const contract = getCommentContract(signer)
+
+      toast.loading('发送评论中...')
+      
+      // 发送交易
+      const tx = await contract.addComment(
+        book.id,
+        currentChapter,
+        selectedText,
+        commentText,
+        Date.now()
+      )
+
+      // 等待交易确认
+      await tx.wait()
+      
+      // 重新加载评论
+      await loadComments()
+      
+      toast.success('评论已成功上链！')
+      setShowCommentModal(false)
+      setSelectedText('')
+      setCommentText('')
+
+    } catch (error) {
+      console.error('评论失败:', error)
+      toast.error('评论上链失败，请重试')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // 修改渲染评论的函数
+  const renderContentWithComments = (content: string) => {
+    // 获取当前章节的评论
+    const chapterComments = comments.filter(c => c.chapterId === currentChapter)
+    if (!chapterComments.length) return content
+
+    let lastIndex = 0
+    const result = []
     
     // 按照文本位置排序评论
-    const sortedComments = [...comments].sort((a, b) => 
+    const sortedComments = [...chapterComments].sort((a, b) => 
       content.indexOf(a.selectedText) - content.indexOf(b.selectedText)
-    );
+    )
 
     for (const comment of sortedComments) {
-      const index = content.indexOf(comment.selectedText, lastIndex);
-      if (index === -1) continue;
+      const index = content.indexOf(comment.selectedText, lastIndex)
+      if (index === -1) continue
 
       // 添加评论前的普通文本
-      result.push(content.slice(lastIndex, index));
+      result.push(content.slice(lastIndex, index))
 
       // 添加带注释的文本
       result.push(
         <span
-          key={comment.id}
+          key={comment.tokenId}
           className="border-b border-dashed border-amber-500 cursor-pointer group relative"
         >
           {comment.selectedText}
           <div className="hidden group-hover:block absolute bottom-full left-0 w-64 p-3 rounded-lg shadow-lg bg-white dark:bg-gray-800 z-10 mb-2">
-            <p className="text-sm">{comment.text}</p>
+            <p className="text-sm">{comment.commentText}</p>
             <div className="text-xs text-gray-500 mt-2">
-              {new Date(comment.timestamp).toLocaleString()}
+              <p>评论者: {comment.author.slice(0, 6)}...{comment.author.slice(-4)}</p>
+              <p>{new Date(comment.timestamp).toLocaleString()}</p>
             </div>
           </div>
         </span>
-      );
+      )
 
-      lastIndex = index + comment.selectedText.length;
+      lastIndex = index + comment.selectedText.length
     }
 
     // 添加剩余的文本
-    result.push(content.slice(lastIndex));
+    result.push(content.slice(lastIndex))
 
-    return result;
-  };
+    return result
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-500 
@@ -213,16 +300,9 @@ export default function ReadingView({ book }: { book: Book }) {
           <div 
             onMouseUp={handleTextSelection}
             className="leading-loose whitespace-pre-wrap transition-all relative"
-            style={{ 
-              fontSize: `${fontSize}px`,
-              letterSpacing: '0.02em',
-              textAlign: 'justify'
-            }}
+            style={{ fontSize: `${fontSize}px` }}
           >
-            {renderContentWithComments(
-              book.chapters[currentChapter].content,
-              comments[book.id]?.[currentChapter] || []
-            )}
+            {renderContentWithComments(book.chapters[currentChapter].content)}
           </div>
         </motion.div>
       </div>
@@ -394,7 +474,7 @@ export default function ReadingView({ book }: { book: Book }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-40"
-              onClick={() => setShowCommentModal(false)}
+              onClick={() => !isSubmitting && setShowCommentModal(false)}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -404,7 +484,7 @@ export default function ReadingView({ book }: { book: Book }) {
                 w-96 p-6 rounded-2xl shadow-lg z-50
                 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
             >
-              <h3 className="text-xl font-bold mb-4">添加评论</h3>
+              <h3 className="text-xl font-bold mb-4">添加链上评论</h3>
               <div className="mb-4 p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
                 <p className="text-sm">{selectedText}</p>
               </div>
@@ -413,30 +493,32 @@ export default function ReadingView({ book }: { book: Book }) {
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 className={`w-full p-3 rounded-lg mb-4 resize-none
-                  ${isDarkMode 
-                    ? 'bg-gray-700 text-gray-100' 
-                    : 'bg-gray-50 text-gray-800'}`}
+                  ${isDarkMode ? 'bg-gray-700 text-gray-100' : 'bg-gray-50 text-gray-800'}`}
                 rows={4}
                 placeholder="写下你的评论..."
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.metaKey) {
-                    handleAddComment()
-                  }
-                }}
+                disabled={isSubmitting}
               />
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setShowCommentModal(false)}
-                  className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  取消
-                </button>
-                <button
-                  onClick={handleAddComment}
-                  className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600"
-                >
-                  添加评论
-                </button>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-500">
+                  评论将作为 NFT 永久记录在链上
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowCommentModal(false)}
+                    className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    disabled={isSubmitting}
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={handleAddComment}
+                    disabled={isSubmitting || !commentText.trim()}
+                    className={`px-4 py-2 rounded-lg bg-amber-500 text-white
+                      ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-amber-600'}`}
+                  >
+                    {isSubmitting ? '确认中...' : '发布评论'}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </>

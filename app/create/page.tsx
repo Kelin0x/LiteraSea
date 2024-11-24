@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Upload, X, Check, Loader2 } from "lucide-react"
+import { Header } from "../marketplace/header"
 
 export default function CreateNFTPage() {
     const [name, setName] = useState("")
@@ -45,13 +46,13 @@ export default function CreateNFTPage() {
             })
 
             if (!response.ok) {
-                throw new Error('上传图片失败')
+                throw new Error('Failed to upload image')
             }
 
             const data = await response.json()
             return `${process.env.NEXT_PUBLIC_PINATA_DOMAIN}/ipfs/${data.IpfsHash}`
         } catch (error) {
-            console.error('上传到 Pinata 失败:', error)
+            console.error('Failed to upload to Pinata:', error)
             throw error
         }
     }
@@ -82,12 +83,12 @@ export default function CreateNFTPage() {
     // 修改铸造函数
     const handleMint = async () => {
         if (!window.ethereum) {
-            setError("请先安装 MetaMask")
+            setError("Please install MetaMask first")
             return
         }
 
         if (!name || !description || !image) {
-            setError("请填写完整信息")
+            setError("Please fill in all required fields")
             return
         }
 
@@ -95,38 +96,37 @@ export default function CreateNFTPage() {
             setLoading(true)
             setError(null)
 
-            // 1. 上传图片到 IPFS
+            // 1. Upload image to IPFS
             const imageUrl = await uploadImageToPinata(image)
-            console.log('图片上传成功:', imageUrl)
+            console.log('Image uploaded:', imageUrl)
 
-            // 2. 创建并上传元数据
+            // 2. Create and upload metadata
             const metadata = {
                 name,
                 description,
                 image: imageUrl,
-                attributes: [] // 可以添加其他属性
+                attributes: []
             }
 
-            // 3. 上传元数据到 IPFS
+            // 3. Upload metadata to IPFS
             const metadataUrl = await uploadMetadataToPinata(metadata)
-            console.log('元数据上传成功:', metadataUrl)
+            console.log('Metadata uploaded:', metadataUrl)
 
-            // 4. 铸造 NFT
+            // 4. Mint NFT
             const provider = new ethers.BrowserProvider(window.ethereum)
             const signer = await provider.getSigner()
             const nftContract = getNFTContract(signer)
 
             const tx = await nftContract.safeMint(await signer.getAddress(), metadataUrl)
-            console.log('交易已发送:', tx.hash)
+            console.log('Transaction sent:', tx.hash)
 
-            // 等待交易确认
             const receipt = await tx.wait()
-            console.log('交易已确认:', receipt)
+            console.log('Transaction confirmed:', receipt)
 
             setSuccess(true)
             setTimeout(() => setSuccess(false), 3000)
             
-            // 清空表单
+            // Clear form
             setName("")
             setDescription("")
             setImage(null)
@@ -136,8 +136,8 @@ export default function CreateNFTPage() {
             }
 
         } catch (err) {
-            console.error("铸造NFT失败:", err)
-            setError("铸造NFT失败: " + (err as Error).message)
+            console.error("Failed to mint NFT:", err)
+            setError("Failed to mint NFT: " + (err as Error).message)
         } finally {
             setLoading(false)
         }
@@ -154,6 +154,8 @@ export default function CreateNFTPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-gray-900 dark:to-gray-800">
+            <Header />
+
             <div className="container mx-auto py-12 px-4">
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
@@ -161,10 +163,10 @@ export default function CreateNFTPage() {
                     className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
                 >
                     <h1 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                        创建你的 NFT
+                        Create Your NFT
                     </h1>
 
-                    {/* 图片上传区域 */}
+                    {/* Image upload area */}
                     <div className="mb-8">
                         <div className="relative h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden">
                             {previewUrl ? (
@@ -188,7 +190,7 @@ export default function CreateNFTPage() {
                             ) : (
                                 <label className="flex flex-col items-center justify-center h-full cursor-pointer">
                                     <Upload size={32} className="text-gray-400 mb-2" />
-                                    <span className="text-gray-500">点击上传图片</span>
+                                    <span className="text-gray-500">Click to upload image</span>
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -201,31 +203,31 @@ export default function CreateNFTPage() {
                         </div>
                     </div>
 
-                    {/* 表单区域 */}
+                    {/* Form area */}
                     <div className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                NFT 名称
+                                NFT Name
                             </label>
                             <input
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 dark:bg-gray-700"
-                                placeholder="给你的 NFT 起个名字"
+                                placeholder="Give your NFT a name"
                             />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                描述
+                                Description
                             </label>
                             <textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={4}
                                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 dark:bg-gray-700"
-                                placeholder="描述一下你的 NFT"
+                                placeholder="Describe your NFT"
                             />
                         </div>
 
@@ -245,7 +247,7 @@ export default function CreateNFTPage() {
                             ) : success ? (
                                 <Check className="w-5 h-5" />
                             ) : (
-                                "创建 NFT"
+                                "Create NFT"
                             )}
                         </Button>
                     </div>

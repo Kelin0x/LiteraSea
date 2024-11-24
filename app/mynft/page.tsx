@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { ethers } from "ethers"
 import { getNFTContract, getMarketplaceContract } from '@/utils/contract'
 import { Button } from "@/components/ui/button"
+import { Header } from "../marketplace/header"
 import Image from "next/image"
 
 interface NFTItem {
@@ -29,7 +30,7 @@ export default function MyNFTPage() {
     // 使用 useCallback 包装 fetchNFTs 函数
     const fetchNFTs = useCallback(async () => {
         if (!window.ethereum) {
-            setError("请先安装 MetaMask");
+            setError("Please install MetaMask first");
             return;
         }
 
@@ -77,8 +78,8 @@ export default function MyNFTPage() {
 
             setNfts(ownedNFTs);
         } catch (error) {
-            console.error("获取NFT列表失败:", error);
-            setError("获取NFT列表失败: " + (error as Error).message);
+            console.error("Failed to fetch NFTs:", error);
+            setError("Failed to fetch NFTs: " + (error as Error).message);
         } finally {
             setLoading(false);
         }
@@ -87,12 +88,12 @@ export default function MyNFTPage() {
     // 处理 NFT 上架
     const handleListNFT = useCallback(async (tokenId: string, price: string) => {
         if (!window.ethereum) {
-            alert("请先安装 MetaMask");
+            alert("Please install MetaMask first");
             return;
         }
 
         if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-            alert("请输入有效的价格");
+            alert("Please enter a valid price");
             return;
         }
 
@@ -121,16 +122,16 @@ export default function MyNFTPage() {
             );
             await listTx.wait();
 
-            alert("NFT 上架成功！");
+            alert("NFT listed successfully!");
             setSellingNFT(null);
             setPrice("");
             fetchNFTs();
         } catch (error) {
-            console.error("上架NFT失败:", error);
-            if ((error as Error).message.includes("必须支付上架费用")) {
-                alert("上架失败: 需要支付上架费用");
+            console.error("Failed to list NFT:", error);
+            if ((error as Error).message.includes("listing fee required")) {
+                alert("Listing failed: Listing fee required");
             } else {
-                alert("上架失败: " + (error as Error).message);
+                alert("Listing failed: " + (error as Error).message);
             }
         } finally {
             setIsProcessing(false);
@@ -178,15 +179,16 @@ export default function MyNFTPage() {
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+            <Header />
             <div className="container mx-auto px-4 py-8">
                 <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">我的 NFT 收藏</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">My NFT Collection</h1>
                     <Button
                         onClick={fetchNFTs}
                         className="bg-gradient-to-r from-sky-300/90 to-blue-300/90 
                         hover:from-sky-400/90 hover:to-blue-400/90 text-white"
                     >
-                        刷新列表
+                        Refresh List
                     </Button>
                 </div>
 
@@ -230,10 +232,10 @@ export default function MyNFTPage() {
                                                 value={price}
                                                 onChange={(e) => setPrice(e.target.value)}
                                                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-300"
-                                                placeholder="输入价格 (ETH)"
+                                                placeholder="Enter price (ETH)"
                                             />
                                             <p className="text-xs text-gray-500">
-                                                上架需要支付少量费用用于gas
+                                                Listing requires a small fee for gas
                                             </p>
                                             <div className="flex space-x-2">
                                                 <Button
@@ -241,7 +243,7 @@ export default function MyNFTPage() {
                                                     disabled={isProcessing || !price}
                                                     className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-white"
                                                 >
-                                                    {isProcessing ? "处理中..." : "确认"}
+                                                    {isProcessing ? "Processing..." : "Confirm"}
                                                 </Button>
                                                 <Button
                                                     onClick={() => {
@@ -251,7 +253,7 @@ export default function MyNFTPage() {
                                                     variant="outline"
                                                     className="flex-1"
                                                 >
-                                                    取消
+                                                    Cancel
                                                 </Button>
                                             </div>
                                         </div>
@@ -260,7 +262,7 @@ export default function MyNFTPage() {
                                             onClick={() => setSellingNFT(nft.tokenId)}
                                             className="w-full bg-gradient-to-r from-violet-400 to-indigo-400 text-white"
                                         >
-                                            出售
+                                            List for Sale
                                         </Button>
                                     )}
                                 </div>

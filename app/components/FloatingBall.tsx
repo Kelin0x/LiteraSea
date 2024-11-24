@@ -36,6 +36,7 @@ export function FloatingBall({
     const [avatarUrl, setAvatarUrl] = useState<string>(`https://api.dicebear.com/7.x/bottts/svg?seed=${bookTitle}`)
     const [nfts, setNfts] = useState<NFTItem[]>([])
     const [showNFTSelector, setShowNFTSelector] = useState(false)
+    const [isLoadingNFTs, setIsLoadingNFTs] = useState(false)
 
     // 使用 useMotionValue 来跟踪位置
     const x = useMotionValue(0)
@@ -96,49 +97,79 @@ export function FloatingBall({
         return Math.abs(value) < threshold ? 0 : value
     }
 
+    // 获取默认头像
+    const getDefaultAvatar = (seed: string) => {
+        return `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`
+    }
+
     // 获取用户的所有 NFT
     const fetchUserNFTs = async () => {
-        if (!window.ethereum) return;
+        setIsLoadingNFTs(true)
+        setNfts([]) // 清空现有 NFT 列表
+
+        if (!window.ethereum) {
+            setAvatarUrl(getDefaultAvatar(bookTitle))
+            setIsLoadingNFTs(false)
+            return
+        }
 
         try {
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            const signer = await provider.getSigner();
-            const nftContract = getNFTContract(signer);
-            const address = await signer.getAddress();
+            const provider = new ethers.BrowserProvider(window.ethereum)
+            const signer = await provider.getSigner()
+            const nftContract = getNFTContract(signer)
+            const address = await signer.getAddress()
 
             // 获取用户拥有的 NFT 数量
-            const balance = await nftContract.balanceOf(address);
-            const nftList: NFTItem[] = [];
+            const balance = await nftContract.balanceOf(address)
+            const nftList: NFTItem[] = []
 
             // 获取所有 NFT 的信息
             for (let i = 0; i < Number(balance); i++) {
-                const tokenId = await nftContract.tokenOfOwnerByIndex(address, i);
-                const tokenURI = await nftContract.tokenURI(tokenId);
-                
                 try {
-                    let metadata;
+                    const tokenId = await nftContract.tokenOfOwnerByIndex(address, i)
+                    const tokenURI = await nftContract.tokenURI(tokenId)
+                    
+                    let metadata
                     if (tokenURI.startsWith('{')) {
-                        metadata = JSON.parse(tokenURI);
+                        metadata = JSON.parse(tokenURI)
                     } else {
-                        const response = await fetch(tokenURI);
-                        metadata = await response.json();
+                        const response = await fetch(tokenURI)
+                        metadata = await response.json()
                     }
                     
                     nftList.push({
                         tokenId: tokenId.toString(),
                         image: metadata.image,
                         name: metadata.name
-                    });
+                    })
                 } catch (error) {
-                    console.error("获取NFT元数据失败:", error);
+                    console.error("获取NFT元数据失败:", error)
+                    continue
                 }
             }
 
-            setNfts(nftList);
+            setNfts(nftList)
+            
+            // 如果没有 NFT，使用默认头像
+            if (nftList.length === 0) {
+                setAvatarUrl(getDefaultAvatar(bookTitle))
+            } else {
+                // 如果有保存的选择，使用保存的选择；否则使用第一个 NFT
+                const savedAvatar = localStorage.getItem('selectedNFTAvatar')
+                if (savedAvatar && nftList.some(nft => nft.image === savedAvatar)) {
+                    setAvatarUrl(savedAvatar)
+                } else {
+                    setAvatarUrl(nftList[0].image)
+                    localStorage.setItem('selectedNFTAvatar', nftList[0].image)
+                }
+            }
         } catch (error) {
-            console.error("获取NFT列表失败:", error);
+            console.error("获取NFT列表失败:", error)
+            setAvatarUrl(getDefaultAvatar(bookTitle))
+        } finally {
+            setIsLoadingNFTs(false)
         }
-    };
+    }
 
     // NFT 选择器组件
     const NFTSelector = () => (
@@ -149,25 +180,31 @@ export function FloatingBall({
             className={`absolute bottom-20 right-0 w-64 rounded-lg shadow-xl overflow-hidden
                 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
         >
-            <div className={`p-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+            <div className={`p-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} flex justify-between items-center`}>
                 <h3 className="text-sm font-medium">选择 NFT</h3>
+                {isLoadingNFTs && (
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                )}
             </div>
             <div className="p-2 max-h-60 overflow-y-auto">
                 <div className="grid grid-cols-3 gap-2">
-                    {nfts.length === 0 ? (
+                    {isLoadingNFTs ? (
                         <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
-                            暂无 NFT
+                            加载中...
+                        </div>
+                    ) : nfts.length === 0 ? (
+                        <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
+                            未找到 NFT，使用默认头像
                         </div>
                     ) : (
                         nfts.map((nft) => (
                             <button
                                 key={nft.tokenId}
                                 onClick={() => {
-                                    setAvatarUrl(nft.image);
-                                    setShowNFTSelector(false);
-                                    localStorage.setItem('selectedNFTAvatar', nft.image);
-                                    // 自动打开聊天窗口
-                                    setIsOpen(true);
+                                    setAvatarUrl(nft.image)
+                                    setShowNFTSelector(false)
+                                    localStorage.setItem('selectedNFTAvatar', nft.image)
+                                    setIsOpen(true)
                                 }}
                                 className="relative group rounded-lg overflow-hidden aspect-square"
                             >
@@ -178,8 +215,8 @@ export function FloatingBall({
                                     height={80}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${nft.tokenId}`;
+                                        const target = e.target as HTMLImageElement
+                                        target.src = getDefaultAvatar(nft.tokenId)
                                     }}
                                 />
                                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -191,7 +228,20 @@ export function FloatingBall({
                 </div>
             </div>
         </motion.div>
-    );
+    )
+
+    // 在组件加载时获取 NFT
+    useEffect(() => {
+        fetchUserNFTs()
+        
+        // 监听钱包账户变化
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', fetchUserNFTs)
+            return () => {
+                window.ethereum.removeListener('accountsChanged', fetchUserNFTs)
+            }
+        }
+    }, [])
 
     // 修改头像点击事件
     const handleAvatarClick = (e: React.MouseEvent) => {
@@ -203,14 +253,6 @@ export function FloatingBall({
             setIsOpen(false);
         }
     };
-
-    // 在组件加载时检查本地存储的头像
-    useEffect(() => {
-        const savedAvatar = localStorage.getItem('selectedNFTAvatar');
-        if (savedAvatar) {
-            setAvatarUrl(savedAvatar);
-        }
-    }, []);
 
     // 添加加载状态
     const [isLoading, setIsLoading] = useState(false)
@@ -300,99 +342,101 @@ export function FloatingBall({
                 {showNFTSelector && <NFTSelector />}
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
+                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, y: 20 }}
                         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        className={`absolute bottom-16 right-0 w-80 rounded-lg shadow-xl overflow-hidden
-                            ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
+                        className={`absolute bottom-20 right-0 w-96 rounded-2xl shadow-2xl overflow-hidden
+                            ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}
                         onPointerDown={(e) => e.stopPropagation()}
                     >
                         {/* 聊天头部 */}
                         <div className={`p-4 flex justify-between items-center cursor-default
-                            ${isDarkMode ? 'bg-gray-700' : 'bg-blue-600'} text-white`}>
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full overflow-hidden bg-white p-1 flex items-center justify-center">
+                            ${isDarkMode 
+                                ? 'bg-gradient-to-r from-gray-700 to-gray-800' 
+                                : 'bg-gradient-to-r from-blue-500 to-purple-500'
+                            } text-white`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 p-1 flex items-center justify-center backdrop-blur-sm">
                                     <div className="w-full h-full rounded-full overflow-hidden">
                                         <Image
                                             src={avatarUrl}
                                             alt="Bot Avatar"
-                                            width={28}
-                                            height={28}
+                                            width={36}
+                                            height={36}
                                             className="w-full h-full object-cover rounded-full"
                                             onError={() => setAvatarUrl(`https://api.dicebear.com/7.x/bottts/svg?seed=${bookTitle}`)}
                                         />
                                     </div>
                                 </div>
-                                <span>阅读助手</span>
-                            </div>
-                            <div className="text-sm text-gray-300">
-                                {currentChapter}
+                                <div className="flex flex-col">
+                                    <span className="font-medium">Reading Assistant</span>
+                                    <span className="text-xs text-white/70">{currentChapter}</span>
+                                </div>
                             </div>
                         </div>
 
-                        {/* 消息中的头像也使用 NFT */}
-                        <div className={`h-96 overflow-y-auto p-4 space-y-4 cursor-default
-                            ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                        {/* 消息区域 */}
+                        <div className={`h-[400px] overflow-y-auto p-4 space-y-4 cursor-default
+                            ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}
+                        >
                             {messages.map((message, index) => (
                                 <div
                                     key={index}
-                                    className={`flex items-end gap-2 ${
-                                        message.type === 'user' ? 'justify-end' : 'justify-start'
-                                    }`}
+                                    className={`flex items-end gap-2 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     {message.type === 'bot' && (
-                                        <div className="w-6 h-6 rounded-full overflow-hidden bg-white p-0.5 flex-shrink-0">
+                                        <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 p-0.5 flex-shrink-0">
                                             <Image
                                                 src={avatarUrl}
                                                 alt="Bot Avatar"
-                                                width={20}
-                                                height={20}
+                                                width={28}
+                                                height={28}
                                                 className="w-full h-full object-cover rounded-full"
                                                 onError={() => setAvatarUrl(getDefaultAvatar(bookTitle))}
                                             />
                                         </div>
                                     )}
-                                    <div className={`max-w-[80%] rounded-lg p-3 ${
+                                    <div className={`max-w-[80%] rounded-2xl p-3 ${
                                         message.type === 'user'
-                                            ? 'bg-blue-600 text-white'
+                                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
                                             : isDarkMode
                                                 ? 'bg-gray-700 text-gray-100'
-                                                : 'bg-gray-100 text-gray-800'
+                                                : 'bg-white text-gray-800 shadow-sm'
                                     }`}>
                                         {message.content}
                                     </div>
                                 </div>
                             ))}
-                            <div ref={messagesEndRef} />
                         </div>
 
-                        {/* 输入区域添加加载状态 */}
+                        {/* 输入区域 */}
                         <div className={`p-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                            <div className="flex gap-2">
+                            <div className="flex gap-3">
                                 <input
                                     type="text"
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                                    placeholder={isLoading ? "AI 正在思考..." : "输入你的问题..."}
+                                    placeholder={isLoading ? "AI is thinking..." : "Ask a question..."}
                                     disabled={isLoading}
-                                    className={`flex-1 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                                    className={`flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500
                                         ${isDarkMode 
                                             ? 'bg-gray-700 text-gray-100 placeholder-gray-400' 
-                                            : 'bg-gray-50 text-gray-800 placeholder-gray-500'}
+                                            : 'bg-gray-100 text-gray-800 placeholder-gray-500'}
                                         ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 />
                                 <Button 
                                     onClick={handleSend}
                                     disabled={isLoading}
-                                    className={`${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                                    className={`rounded-xl px-4 ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : ''}
                                         ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     {isLoading ? (
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                     ) : (
-                                        <Send size={18} />
+                                        <Send size={20} />
                                     )}
                                 </Button>
                             </div>
@@ -410,39 +454,35 @@ export function FloatingBall({
             >
                 <Button
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`w-12 h-12 rounded-full shadow-lg overflow-hidden p-0
+                    className={`w-16 h-16 rounded-full shadow-lg overflow-hidden p-0
                         ${isOpen 
-                            ? 'bg-red-500 hover:bg-red-600' 
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600' 
                             : isDarkMode
                                 ? 'bg-white hover:bg-gray-100' 
                                 : 'bg-white hover:bg-gray-50'
                         }
                         transition-all duration-300 ease-in-out
-                        hover:shadow-2xl`}
+                        hover:shadow-2xl hover:scale-105`}
                 >
                     {isOpen ? (
-                        <X size={24} className="text-white" />
+                        <X size={28} className="text-white" />
                     ) : (
                         <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
                             <div className="w-full h-full rounded-full overflow-hidden relative group">
                                 <Image
                                     src={avatarUrl}
                                     alt="Bot Avatar"
-                                    width={32}
-                                    height={32}
-                                    className="w-full h-full object-cover rounded-full"
+                                    width={48}
+                                    height={48}
+                                    className="w-full h-full object-cover rounded-full transition-transform duration-300 group-hover:scale-110"
                                     onError={() => setAvatarUrl(getDefaultAvatar(bookTitle))}
                                 />
-                                {/* 添加一个覆盖层用于头像点击 */}
                                 <div 
-                                    className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors cursor-pointer"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleAvatarClick(e);
-                                    }}
+                                    className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors cursor-pointer"
+                                    onClick={handleAvatarClick}
                                 >
                                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                        <ChevronDown size={16} className="text-white" />
+                                        <ChevronDown size={20} className="text-white" />
                                     </div>
                                 </div>
                             </div>
