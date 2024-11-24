@@ -5,6 +5,18 @@ import { useState, useEffect, useRef } from "react"
 import { ethers } from "ethers"
 import { getNFTContract, getMarketplaceContract } from '../../utils/contract'
 
+// 在文件开头添加新的状态接口
+interface NFTItem {
+  tokenId: string;
+  itemId?: string;
+  name: string;
+  description: string;
+  image: string;
+  price?: string;
+  isListed?: boolean;
+  seller?: string;
+}
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [account, setAccount] = useState("")
@@ -161,10 +173,12 @@ const Navbar = () => {
 // 主页面组件
 const BookPage = () => {
   const [nfts, setNfts] = useState<any[]>([]);
+  const [marketNFTs, setMarketNFTs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'collection' | 'market'>('collection');
 
-  // 将fetchNFTs提升到父组件
+  // 修改 fetchNFTs 函数
   const fetchNFTs = async () => {
     if (!window.ethereum) {
       setError("请先安装 MetaMask");
@@ -179,53 +193,79 @@ const BookPage = () => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const nftContract = getNFTContract(signer);
+      const marketplaceContract = getMarketplaceContract(signer);
       const address = await signer.getAddress();
 
+      // 获取用户拥有的 NFT
       const balance = await nftContract.balanceOf(address);
-      console.log('NFT余额:', balance.toString());
-
-      const totalNFTs = [];
+      const ownedNFTs = [];
 
       for (let i = 0; i < Number(balance); i++) {
+        const tokenId = await nftContract.tokenOfOwnerByIndex(address, i);
+        const tokenURI = await nftContract.tokenURI(tokenId);
+        
+        let metadata;
         try {
-          const tokenId = await nftContract.tokenOfOwnerByIndex(address, i);
-          console.log('获取到tokenId:', tokenId.toString());
+          if (tokenURI.startsWith('{')) {
+            metadata = JSON.parse(tokenURI);
+          } else {
+            const response = await fetch(tokenURI);
+            metadata = await response.json();
+          }
+        } catch (error) {
+          metadata = {
+            name: `NFT #${tokenId}`,
+            description: '无法加载元数据',
+            image: 'https://placehold.co/400x400'
+          };
+        }
 
-          const tokenURI = await nftContract.tokenURI(tokenId);
-          console.log('获取到tokenURI:', tokenURI);
+        ownedNFTs.push({
+          tokenId: tokenId.toString(),
+          name: metadata.name || `NFT #${tokenId}`,
+          description: metadata.description || '',
+          image: metadata.image || 'https://placehold.co/400x400',
+          isListed: false
+        });
+      }
 
+      // 获取市场中的 NFT
+      const marketItems = await marketplaceContract.fetchMarketItems();
+      const marketNFTsList = await Promise.all(
+        marketItems.map(async (item: any) => {
+          const tokenURI = await nftContract.tokenURI(item.tokenId);
           let metadata;
           try {
-            // 检查tokenURI是否是JSON字符串
             if (tokenURI.startsWith('{')) {
               metadata = JSON.parse(tokenURI);
             } else {
-              // 如果是URL，则进行fetch
               const response = await fetch(tokenURI);
               metadata = await response.json();
             }
           } catch (error) {
-            console.error('获取元数据失败:', error);
             metadata = {
-              name: `NFT #${tokenId}`,
+              name: `NFT #${item.tokenId}`,
               description: '无法加载元数据',
               image: 'https://placehold.co/400x400'
             };
           }
 
-          totalNFTs.push({
-            tokenId: tokenId.toString(),
-            name: metadata.name || `NFT #${tokenId}`,
+          return {
+            tokenId: item.tokenId.toString(),
+            itemId: item.itemId.toString(),
+            name: metadata.name || `NFT #${item.tokenId}`,
             description: metadata.description || '',
-            image: metadata.image || 'https://placehold.co/400x400'
-          });
-        } catch (error) {
-          console.error(`获取NFT ${i}的信息失败:`, error);
-        }
-      }
+            image: metadata.image || 'https://placehold.co/400x400',
+            price: ethers.formatEther(item.price),
+            seller: item.seller,
+            isListed: true
+          };
+        })
+      );
 
-      console.log('获取到的NFTs:', totalNFTs);
-      setNfts(totalNFTs);
+      // 分别设置个人收藏和市场NFT
+      setNfts(ownedNFTs);
+      setMarketNFTs(marketNFTsList);
     } catch (error) {
       console.error("获取NFT列表失败:", error);
       setError("获取NFT列表失败: " + (error as Error).message);
@@ -234,7 +274,6 @@ const BookPage = () => {
     }
   };
 
-  // 在组件挂载时获取NFT列表
   useEffect(() => {
     fetchNFTs();
   }, []);
@@ -247,7 +286,49 @@ const BookPage = () => {
         <div className="my-8">
           <hr className="border-gray-300" />
         </div>
-        <NFTGallery nfts={nfts} loading={loading} error={error} onRefresh={fetchNFTs} />
+        
+        {/* 标签页切换按钮 */}
+        <div className="flex space-x-4 mb-6">
+          <button
+            onClick={() => setActiveTab('collection')}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === 'collection'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            我的收藏
+          </button>
+          <button
+            onClick={() => setActiveTab('market')}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === 'market'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            NFT市场
+          </button>
+        </div>
+
+        {/* 根据标签页显示不同内容 */}
+        {activeTab === 'collection' ? (
+          <NFTGallery
+            nfts={nfts}
+            loading={loading}
+            error={error}
+            onRefresh={fetchNFTs}
+            showMarket={false}
+          />
+        ) : (
+          <NFTGallery
+            nfts={marketNFTs}
+            loading={loading}
+            error={error}
+            onRefresh={fetchNFTs}
+            showMarket={true}
+          />
+        )}
       </main>
     </div>
   );
@@ -501,7 +582,7 @@ const MintNFT = ({ onMintSuccess }: { onMintSuccess: () => Promise<void> }) => {
           </p>
         </div>
       ) : (
-        // 表单填写模式
+        // 表单填写���式
         <div className="space-y-4 mb-4">
           <div>
             <label className="block text-sm font-medium mb-2">NFT名称</label>
@@ -582,7 +663,7 @@ const MintNFT = ({ onMintSuccess }: { onMintSuccess: () => Promise<void> }) => {
               )}
 
               <p className="text-sm text-gray-500 mt-2">
-                支持 JPG、PNG 格式，大小不超过5MB
+                 支持 JPG、PNG 格式，大小不超过5MB
               </p>
             </div>
           </div>
@@ -626,17 +707,112 @@ const NFTGallery = ({
   nfts, 
   loading, 
   error, 
-  onRefresh 
+  onRefresh,
+  showMarket
 }: { 
-  nfts: any[], 
+  nfts: NFTItem[], 
   loading: boolean, 
   error: string | null,
-  onRefresh: () => Promise<void>
+  onRefresh: () => Promise<void>,
+  showMarket: boolean
 }) => {
+  const [sellingNFT, setSellingNFT] = useState<string | null>(null);
+  const [price, setPrice] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // 处理 NFT 上架
+  const handleListNFT = async (tokenId: string, price: string) => {
+    if (!window.ethereum) {
+      alert("请先安装 MetaMask");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const nftContract = getNFTContract(signer);
+      const marketplaceContract = getMarketplaceContract(signer);
+
+      // 1. 首先授权 Marketplace 合约操作 NFT
+      const approveTx = await nftContract.approve(
+        marketplaceContract.target,
+        tokenId
+      );
+      await approveTx.wait();
+
+      // 2. 获取上架费用
+      const listingPrice = await marketplaceContract.getListingPrice();
+
+      // 3. 创建市场商品
+      const priceInWei = ethers.parseEther(price);
+      const tx = await marketplaceContract.createMarketItem(
+        nftContract.target,
+        tokenId,
+        priceInWei,
+        { value: listingPrice }
+      );
+      await tx.wait();
+
+      alert("NFT 上架成功！");
+      setSellingNFT(null);
+      setPrice("");
+      onRefresh();
+    } catch (error) {
+      console.error("上架NFT失败:", error);
+      alert("上架失败: " + (error as Error).message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // 处理 NFT 购买
+  const handleBuyNFT = async (itemId: string, price: string) => {
+    if (!window.ethereum) {
+      alert("请先安装 MetaMask");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const marketplaceContract = getMarketplaceContract(signer);
+      const nftContract = getNFTContract(signer);
+
+      // 转换价格为 Wei
+      const priceInWei = ethers.parseEther(price);
+
+      // 执行购买
+      const tx = await marketplaceContract.createMarketSale(
+        nftContract.target,
+        itemId,
+        { 
+          value: priceInWei  // 确保传入正确的价格
+        }
+      );
+      await tx.wait();
+
+      alert("NFT 购买成功！");
+      onRefresh();
+    } catch (error) {
+      console.error("购买NFT失败:", error);
+      if ((error as any).reason) {
+        alert("购买失败: " + (error as any).reason);
+      } else {
+        alert("购买失败: " + (error as Error).message);
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">我的NFT收藏</h2>
+        <h2 className="text-2xl font-bold">
+          {showMarket ? "NFT 市场" : "我的NFT收藏"}
+        </h2>
         <button
           onClick={onRefresh}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -664,17 +840,62 @@ const NFTGallery = ({
                 className="w-full h-48 object-cover rounded-md mb-2"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  if (!target.dataset.errorHandled) {
-                    target.dataset.errorHandled = 'true';
-                    target.src = 'https://placehold.co/400x400';
-                  }
+                  target.src = 'https://placehold.co/400x400';
                 }}
               />
               <h3 className="text-lg font-semibold">{nft.name}</h3>
-              {nft.description && (
-                <p className="text-gray-600 text-sm">{nft.description}</p>
-              )}
+              <p className="text-gray-600 text-sm">{nft.description}</p>
               <p className="text-sm text-gray-500 mt-2">Token ID: {nft.tokenId}</p>
+              
+              {/* 出售/购买按钮 */}
+              {nft.isListed ? (
+                <div className="mt-4">
+                  <p className="text-lg font-bold text-green-600">{nft.price} ETH</p>
+                  <button
+                    onClick={() => handleBuyNFT(nft.itemId, nft.price!)}
+                    disabled={isProcessing}
+                    className="w-full mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-400"
+                  >
+                    {isProcessing ? "处理中..." : "购买"}
+                  </button>
+                </div>
+              ) : sellingNFT === nft.tokenId ? (
+                <div className="mt-4">
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full p-2 border rounded mb-2"
+                    placeholder="输入价格 (ETH)"
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleListNFT(nft.tokenId, price)}
+                      disabled={isProcessing || !price}
+                      className="flex-1 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-400"
+                    >
+                      {isProcessing ? "处理中..." : "确认"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSellingNFT(null);
+                        setPrice("");
+                      }}
+                      className="flex-1 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setSellingNFT(nft.tokenId)}
+                  className="w-full mt-4 bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  出售
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -688,4 +909,3 @@ const NFTGallery = ({
 };
 
 export default BookPage;
-
