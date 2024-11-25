@@ -14,23 +14,29 @@ interface FloatingBallProps {
     isDarkMode: boolean;
     currentChapter: string;
     onAskQuestion?: (question: string) => void;
+    nftDescription?: string;
 }
 
 interface NFTItem {
     tokenId: string;
     image: string;
     name: string;
+    description: string;
 }
 
 export function FloatingBall({
     bookTitle,
     isDarkMode,
     currentChapter,
-    onAskQuestion
+    onAskQuestion,
+    nftDescription
 }: FloatingBallProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [messages, setMessages] = useState<Array<{ type: 'user' | 'bot', content: string }>>([
-        { type: 'bot', content: `你好！我是你的阅读助手，很高兴为你解答关于《${bookTitle}》的任何问题。` }
+        { 
+            type: 'bot', 
+            content: `你好！我是你的阅读助手，很高兴为你解答关于《${bookTitle}》的任何问题。`
+        }
     ])
     const [input, setInput] = useState('')
     const containerRef = useRef<HTMLDivElement>(null)
@@ -141,7 +147,8 @@ export function FloatingBall({
                     nftList.push({
                         tokenId: tokenId.toString(),
                         image: metadata.image,
-                        name: metadata.name
+                        name: metadata.name,
+                        description: metadata.description || '这个 NFT 暂无描述'
                     })
                 } catch (error) {
                     console.error("获取NFT元数据失败:", error)
@@ -205,6 +212,12 @@ export function FloatingBall({
                                     setAvatarUrl(nft.image)
                                     setShowNFTSelector(false)
                                     localStorage.setItem('selectedNFTAvatar', nft.image)
+                                    setCurrentNFTDescription(nft.description)
+                                    setMessages([{
+                                        type: 'bot',
+                                        content: `你好！我是你的阅读助手。我看到你选择了这本书的 NFT，NFT描述为："${nft.description}"。
+                                                作为NFT持有者，你将获得更专业的阅读指导。让我来为你解答关于《${bookTitle}》的任何问题。`
+                                    }])
                                     setIsOpen(true)
                                 }}
                                 className="relative group rounded-lg overflow-hidden aspect-square"
@@ -231,17 +244,20 @@ export function FloatingBall({
         </motion.div>
     )
 
-    // 在组件加载时获取 NFT
+    // 在组件加载时获取 NFT 数据和描述
     useEffect(() => {
-        fetchUserNFTs()
-
-        // 监听钱包账户变化
-        if (window.ethereum) {
-            window.ethereum.on('accountsChanged', fetchUserNFTs)
-            return () => {
-                window.ethereum.removeListener('accountsChanged', fetchUserNFTs)
+        const init = async () => {
+            await fetchUserNFTs()
+            // 如果有保存的头像，尝试找到对应的 NFT 描述
+            const savedAvatar = localStorage.getItem('selectedNFTAvatar')
+            if (savedAvatar) {
+                const selectedNFT = nfts.find(nft => nft.image === savedAvatar)
+                if (selectedNFT) {
+                    setCurrentNFTDescription(selectedNFT.description)
+                }
             }
         }
+        init()
     }, [])
 
     // 修改头像点击事件
@@ -258,9 +274,36 @@ export function FloatingBall({
     // 添加加载状态
     const [isLoading, setIsLoading] = useState(false)
 
-    // 添加 API 调用函数
+    // 添加一个状态来跟踪是否有 NFT 描述
+    const [hasNFTDescription, setHasNFTDescription] = useState(!!nftDescription)
+
+    useEffect(() => {
+        setHasNFTDescription(!!nftDescription)
+    }, [nftDescription])
+
+    // 修改 callChatAPI 函数
     const callChatAPI = async (message: string) => {
         try {
+            const systemContent = currentNFTDescription 
+                ? `你是一个专业的阅读助手，具有以下特点和功能：
+                    1. 你正在帮助用户阅读《${bookTitle}》的"${currentChapter}"章节
+                    2. 用户拥有这本书的 NFT，描述为：${currentNFTDescription}
+                    3. 你应该：
+                       - 能够解释文中的难懂词句和典故
+                       - 分析人物性格和情节发展
+                       - 提供深入的文学赏析
+                       - 联系历史背景进行解读
+                       - 总结章节主要内容
+                       - 结合 NFT 描述提供独特见解`
+                : `你是一个专业的阅读助手，具有以下特点和功能：
+                    1. 你正在帮助用户阅读《${bookTitle}》的"${currentChapter}"章节
+                    2. 你应该：
+                       - 能够解释文中的难懂词句和典故
+                       - 分析人物性格和情节发展
+                       - 提供深入的文学赏析
+                       - 联系历史背景进行解读
+                       - 总结章节主要内容`
+
             const response = await axios.post(
                 'https://www.gptapi.us/v1/chat/completions',
                 {
@@ -268,35 +311,15 @@ export function FloatingBall({
                     messages: [
                         {
                             role: 'system',
-                            content: `你是一个专业的阅读助手，具有以下特点和功能：
-                                1. 你正在帮助用户阅读《${bookTitle}》的"${currentChapter}"章节
-                                2. 你应该：
-                                   - 能够解释文中的难懂词句和典故
-                                   - 分析人物性格和情节发展
-                                   - 提供深入的文学赏析
-                                   - 联系历史背景进行解读
-                                   - 总结章节主要内容
-                                3. 回答要求：
-                                   - 回答要简洁明了，通常不超过200字
-                                   - 使用友好、专业的语气
-                                   - 如果不确定的内容，要诚实说明
-                                   - 鼓励读者思考和讨论
-                                4. 特别注意：
-                                   - 避免剧透后续内容
-                                   - 保持客观中立的态度
-                                   - 适时引导读者深入思考
-                                
-                                请基于以上设定来回答用户的问题。`
+                            content: systemContent
                         },
                         {
                             role: 'user',
                             content: message
                         }
                     ],
-                    temperature: 0.7,  // 控制回答的创造性，0.7 表示平衡稳定性和创造性
-                    max_tokens: 800,   // 限制回答长度
-                    presence_penalty: 0.3,  // 鼓励模型讨论新话题
-                    frequency_penalty: 0.3  // 减少重复内容
+                    temperature: 0.7,
+                    max_tokens: 800
                 },
                 {
                     headers: {
@@ -380,6 +403,70 @@ export function FloatingBall({
     useEffect(() => {
         scrollToBottom()
     }, [messages])
+
+    // 添加状态来存储当前选中的 NFT 描述
+    const [currentNFTDescription, setCurrentNFTDescription] = useState<string | null>(null);
+
+    // 添加 useEffect 来监听 NFT 数据变化
+    useEffect(() => {
+        const updateNFTDescription = async () => {
+            try {
+                const provider = new ethers.BrowserProvider(window.ethereum)
+                const signer = await provider.getSigner()
+                const nftContract = getNFTContract(signer)
+                const address = await signer.getAddress()
+
+                const balance = await nftContract.balanceOf(address)
+                
+                // 遍历用户的 NFT
+                for (let i = 0; i < Number(balance); i++) {
+                    const tokenId = await nftContract.tokenOfOwnerByIndex(address, i)
+                    const tokenURI = await nftContract.tokenURI(tokenId)
+
+                    let metadata
+                    if (tokenURI.startsWith('{')) {
+                        metadata = JSON.parse(tokenURI)
+                    } else {
+                        const response = await fetch(tokenURI)
+                        metadata = await response.json()
+                    }
+
+                    // 检查这个 NFT 是否属于当前书籍
+                    if (metadata.name.includes(bookTitle)) {
+                        setCurrentNFTDescription(metadata.description)
+                        // 更新欢迎消息
+                        setMessages([{
+                            type: 'bot',
+                            content: `你好！我是你的阅读助手。我看到你拥有这本书的 NFT，NFT描述为："${metadata.description || '这个 NFT 暂无描述'}"。
+                                    作为NFT持有者，你将获得更专业的阅读指导。让我来为你解答关于《${bookTitle}》的任何问题。`
+                        }])
+                        break
+                    }
+                }
+            } catch (error) {
+                console.error("获取NFT描述失败:", error)
+            }
+        }
+
+        if (window.ethereum) {
+            updateNFTDescription()
+        }
+    }, [bookTitle]) // 当书籍标题改变时重新获取
+
+    // 修改 NFT 选择器中的点击事件处理
+    const handleNFTSelect = (nft: NFTItem) => {
+        setAvatarUrl(nft.image)
+        setShowNFTSelector(false)
+        localStorage.setItem('selectedNFTAvatar', nft.image)
+        setCurrentNFTDescription(nft.description)
+        // 更新欢迎消息
+        setMessages([{
+            type: 'bot',
+            content: `你好！我是你的阅读助手。我看到你选择了这个 NFT，NFT描述为："${nft.description}"。
+                    让我来为你解答关于《${bookTitle}》的任何问题。`
+        }])
+        setIsOpen(true)
+    }
 
     return (
         <motion.div
