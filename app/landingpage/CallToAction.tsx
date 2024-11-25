@@ -1,6 +1,6 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Sparkles, BookOpen, Shield, Coins, Compass, Globe, Star } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import BackgroundGradient from './BackgroundGradient'
 import { useEffect, useRef } from 'react'
 

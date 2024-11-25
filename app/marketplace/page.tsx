@@ -1,5 +1,4 @@
 import { Header } from "./header"
-import { Navigation } from "./navigation"
 import { HeroBanner } from "./hero-banner"
 import { PopularBooks } from "./popular-books"
 

@@ -1,4 +1,5 @@
 'use client'
+
 import Navbar from "./landingpage/Navbar"
 import CallToAction from "./landingpage/CallToAction"
 import WhyChooseUsSection from "./landingpage/WhyChooseUsSection"

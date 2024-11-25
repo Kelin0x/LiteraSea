@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { IoBookOutline, IoSettingsOutline, IoMenuOutline, IoSunnyOutline, IoMoonOutline, IoClose } from 'react-icons/io5'
-import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { FloatingBall } from '../../components/FloatingBall'
 import { ethers } from 'ethers'
 import { toast } from 'react-hot-toast'

@@ -1,11 +1,11 @@
+"use client"
+
 import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
-import { motion, useScroll, useTransform, useSpring, animate, useInView } from "framer-motion"
+import { motion, useScroll, useTransform, useSpring, animate } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BookOpen, ChevronRight, Sparkles, BookMarked, Users, Star, TrendingUp, Wallet } from "lucide-react"
+import { BookOpen, ChevronRight, Sparkles, Wallet } from "lucide-react"
 import { useRouter } from 'next/navigation'
-import Navbar from "./Navbar"
 import BackgroundGradient from "./BackgroundGradient"
 import floatingElements from "./FloatingElements"
 

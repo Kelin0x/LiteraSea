@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Literasea | Web3 Books',
   description: 'Literasea is a web3 book platform that allows authors to publish their books on the blockchain and readers to purchase them with cryptocurrency.',
   icons: {
-    icon: '/favicon.ico'
+    icon: './favicon.ico'
   }
 }
 

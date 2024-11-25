@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Wallet } from 'lucide-react'
-import {Link} from 'react-scroll'
+import { Link } from 'react-scroll'
 
 const Navbar = () => {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
