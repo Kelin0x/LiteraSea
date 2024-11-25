@@ -12,111 +12,93 @@ import { Search, BookOpen, Sparkles } from "lucide-react"
 const BOOKS_DATA = [
   {
     id: "1",
-    title: "The Three-Body Problem",
-    author: "Cixin Liu",
-    description: "The first contact between Earth civilization and extraterrestrial intelligence leads to a mind-bending journey through space and time...",
-    cover: "https://placehold.co/400x600/png?text=Three-Body",
+    cover: "./images/1.png",
     price: "0.1",
     category: "Sci-Fi"
   },
   {
     id: "2",
-    title: "To Live",
-    author: "Yu Hua",
-    description: "A masterpiece chronicling the struggles and resilience of one man through decades of Chinese history...",
-    cover: "https://placehold.co/400x600/png?text=To-Live",
+    cover: "./images/2.png",
     price: "0.08",
     category: "Literature"
   },
   {
     id: "3",
-    title: "One Hundred Years of Solitude",
-    author: "Gabriel García Márquez",
-    description: "A landmark of magical realism, following seven generations of the Buendía family in the mythical town of Macondo...",
-    cover: "https://placehold.co/400x600/png?text=100-Years",
+    cover: "./images/3.png",
     price: "0.12",
     category: "Literature"
   },
   {
     id: "4",
-    title: "Sapiens: A Brief History of Humankind",
-    author: "Yuval Noah Harari",
-    description: "An engaging exploration of how biology and history have defined us and enhanced our understanding of what it means to be human...",
-    cover: "https://placehold.co/400x600/png?text=Sapiens",
+    cover: "./images/4.png",
     price: "0.15",
     category: "History"
   },
   {
     id: "5",
-    title: "The Midnight Library",
-    author: "Matt Haig",
-    description: "Between life and death there is a library, and within that library, the shelves go on forever...",
-    cover: "https://placehold.co/400x600/png?text=Midnight",
+    cover: "./images/5.png",
     price: "0.09",
     category: "Fiction"
   },
   {
     id: "6",
-    title: "Project Hail Mary",
-    author: "Andy Weir",
-    description: "A lone astronaut must save humanity from extinction in this thrilling interstellar adventure...",
-    cover: "https://placehold.co/400x600/png?text=Hail-Mary",
+    cover: "./images/6.png",
     price: "0.14",
     category: "Sci-Fi"
   },
   {
     id: "7",
-    title: "Dune",
-    author: "Frank Herbert",
-    description: "Set in the distant future amidst a feudal interstellar society, Dune tells the story of young Paul Atreides...",
-    cover: "https://placehold.co/400x600/png?text=Dune",
+    cover: "./images/7.png",
     price: "0.11",
     category: "Sci-Fi"
   },
   {
     id: "8",
-    title: "The Silent Patient",
-    author: "Alex Michaelides",
-    description: "A woman shoots her husband five times, then never speaks another word. A criminal psychotherapist is determined to unravel the mystery...",
-    cover: "https://placehold.co/400x600/png?text=Silent",
+    cover: "./images/8.png",
     price: "0.13",
     category: "Mystery"
   },
   {
     id: "9",
-    title: "The Psychology of Money",
-    author: "Morgan Housel",
-    description: "Timeless lessons on wealth, greed, and happiness, exploring the complex psychology of money...",
-    cover: "https://placehold.co/400x600/png?text=Psychology",
+    cover: "./images/9.png",
     price: "0.16",
     category: "Finance"
   },
   {
     id: "10",
-    title: "Atomic Habits",
-    author: "James Clear",
-    description: "An easy and proven way to build good habits and break bad ones, using proven scientific principles...",
-    cover: "https://placehold.co/400x600/png?text=Atomic",
+    cover: "./images/10.png",
     price: "0.12",
     category: "Self-Help"
   },
   {
     id: "11",
-    title: "The Alchemist",
-    author: "Paulo Coelho",
-    description: "A mystical story about following your dreams and listening to your heart, filled with wisdom and magic...",
-    cover: "https://placehold.co/400x600/png?text=Alchemist",
+    cover: "./images/11.png",
     price: "0.10",
     category: "Fiction"
   },
   {
     id: "12",
-    title: "1984",
-    author: "George Orwell",
-    description: "A dystopian social science fiction that explores surveillance, truth, and totalitarianism...",
-    cover: "https://placehold.co/400x600/png?text=1984",
+    cover: "./images/12.png",
     price: "0.11",
     category: "Sci-Fi"
+  },
+  {
+    id: "13",
+    cover: "./images/13.png",
+    price: "0.14",
+    category: "Novel"
+  },
+  {
+    id: "14", 
+    cover: "./images/14.png",
+    price: "0.15",
+    category: "History"
+  },
+  {
+    id: "15",
+    cover: "./images/15.png", 
+    price: "0.13",
+    category: "Novel"
   }
 ];
 
@@ -165,9 +147,7 @@ export default function Books() {
   // 过滤书籍
   const filteredBooks = BOOKS_DATA.filter(book => {
     const matchesCategory = selectedCategory === "All" || book.category === selectedCategory;
-    const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesCategory;
   });
 
   return (
@@ -248,7 +228,7 @@ export default function Books() {
               <div className="relative aspect-[3/4]">
                 <Image
                   src={book.cover}
-                  alt={book.title}
+                  alt={`Cover of book ${book.id}`}
                   fill
                   className="object-cover"
                 />
@@ -268,15 +248,6 @@ export default function Books() {
                 </motion.div>
               </div>
               <div className="p-4 space-y-2">
-                <h3 className="font-medium text-blue-700 group-hover:text-blue-800">
-                  {book.title}
-                </h3>
-                <p className="text-sm text-blue-600">
-                  Author: {book.author}
-                </p>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {book.description}
-                </p>
                 <div className="flex justify-end items-center pt-2">
                   <span className="text-xs text-blue-600 px-2 py-1 bg-blue-50 
                          rounded-lg border border-blue-200">

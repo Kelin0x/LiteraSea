@@ -79,6 +79,10 @@ const StackedCards: React.FC = () => {
         }
     }
 
+    const handleExplore = () => {
+        window.location.href = '/marketplace';
+    };
+
     useEffect(() => {
         window.addEventListener('scroll', handleScroll)
         window.addEventListener('resize', handleResize)
@@ -184,6 +188,7 @@ const StackedCards: React.FC = () => {
                             className="font-bold text-lg px-10 py-5 rounded-xl mt-10 cursor-pointer relative overflow-hidden group"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            onClick={handleExplore}
                         >
                             <span className="relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
                                 Explore Features

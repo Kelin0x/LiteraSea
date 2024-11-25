@@ -1,0 +1,48 @@
+const hre = require("hardhat");
+const fs = require("fs");
+const path = require("path");
+
+async function main() {
+    // 部署 NFT 合约
+    const MyNFT = await hre.ethers.getContractFactory("MyNFT");
+    const myNFT = await MyNFT.deploy();
+    await myNFT.waitForDeployment();
+    const deployedAddress = await myNFT.getAddress();
+    console.log("NFT deployed to:", deployedAddress);
+
+    // 部署 Marketplace 合约
+    const NFTMarketplace = await hre.ethers.getContractFactory("NFTMarketplace");
+    const nftMarketplace = await NFTMarketplace.deploy();
+    await nftMarketplace.waitForDeployment();
+    const marketplaceAddress = await nftMarketplace.getAddress();
+    console.log("NFTMarketplace deployed to:", marketplaceAddress);
+
+    // 部署 BookComment 合约
+    const BookComment = await hre.ethers.getContractFactory("BookComment");
+    const bookComment = await BookComment.deploy();
+    await bookComment.waitForDeployment();
+    const commentAddress = await bookComment.getAddress();
+    console.log("BookComment deployed to:", commentAddress);
+
+    // 更新合约地址配置文件
+    const configPath = path.join(__dirname, "../config/contracts.json");
+    const config = {
+        NFT_CONTRACT_ADDRESS: deployedAddress,
+        MARKETPLACE_CONTRACT_ADDRESS: marketplaceAddress,
+        COMMENT_CONTRACT_ADDRESS: commentAddress
+    };
+
+    fs.writeFileSync(
+        configPath,
+        JSON.stringify(config, null, 2),
+        { encoding: "utf-8" }
+    );
+    console.log("Contract addresses have been updated in config/contracts.json");
+}
+
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });

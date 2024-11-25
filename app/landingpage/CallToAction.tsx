@@ -1,6 +1,6 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { Wallet, ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import BackgroundGradient from './BackgroundGradient'
 import { useEffect, useRef } from 'react'
 
@@ -122,14 +122,10 @@ const ParticleSphere = () => {
 }
 
 const CallToAction = () => {
-  const connectWallet = async () => {
-    try {
-      console.log('Connecting wallet...')
-      // 这里添加实际的钱包连接逻辑
-    } catch (error) {
-      console.error('Failed to connect wallet:', error)
-    }
-  }
+  // 添加跳转到 marketplace 的函数
+  const handleLearnMore = () => {
+    window.location.href = '/marketplace';
+  };
 
   return (
     <section className="relative overflow-hidden py-24">
@@ -168,24 +164,14 @@ const CallToAction = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 size="lg"
-                className="group relative px-8 py-6 text-lg bg-gradient-to-r from-blue-600 to-purple-600 
-                           hover:from-blue-700 hover:to-purple-700 transition-all duration-300
-                           hover:shadow-lg hover:shadow-blue-500/25"
-                onClick={connectWallet}
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  <Wallet className="w-5 h-5" />
-                  Connect Wallet
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </span>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="px-8 py-6 text-lg border-2 hover:bg-white/50 transition-colors
-                         hover:border-blue-500/20"
+                variant="solid"
+                className="px-8 py-6 text-lg font-bold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
+                           hover:from-indigo-400 hover:to-pink-400 transition-all duration-300 shadow-lg hover:shadow-xl
+                           transform hover:scale-105"
+                onClick={handleLearnMore}  // 添加点击事件
               >
                 Learn More
+                <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
               </Button>
             </div>
           </div>

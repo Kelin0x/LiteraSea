@@ -35,6 +35,11 @@ const FeaturedBook = () => {
     }
   ];
 
+  // 添加跳转到 marketplace 的函数
+  const handleExplore = () => {
+    window.location.href = '/marketplace';
+  };
+
   return (
     <section className="relative overflow-hidden py-24">
       
@@ -88,11 +93,12 @@ const FeaturedBook = () => {
                   {book.title}
                 </h3>
                 
-                {/* 按钮 - 修改为居中显示 */}
+                {/* 按钮 - 修改为点击跳转到 marketplace */}
                 <div className="flex justify-center">
                   <button
                     className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${book.color} text-white
                               hover:shadow-lg transition-all duration-300 hover:scale-105`}
+                    onClick={handleExplore}  // 添加点击事件
                   >
                     View Details
                   </button>

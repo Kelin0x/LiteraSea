@@ -3,7 +3,7 @@ import Image from "next/image"
 import { motion, useScroll, useTransform, useSpring, animate, useInView } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BookOpen, ChevronRight, Wallet, Sparkles, BookMarked, Users, Check, Star, TrendingUp } from "lucide-react"
+import { BookOpen, ChevronRight, Sparkles, BookMarked, Users, Star, TrendingUp, Wallet } from "lucide-react"
 import { useRouter } from 'next/navigation'
 import Navbar from "./Navbar"
 import BackgroundGradient from "./BackgroundGradient"
@@ -11,100 +11,156 @@ import floatingElements from "./FloatingElements"
 
 
 const HeroSection = () => {
-    // const [isConnected, setIsConnected] = useState(false)
-const targetRef = useRef<HTMLDivElement>(null)
-const { scrollYProgress } = useScroll({
-  target: targetRef,
-  offset: ["start start", "end start"]
-})
-
-const scale = useTransform(scrollYProgress, [0, 0.7], [1.1, 0.8])
-const y = useTransform(scrollYProgress, [0, 1], ["0%", "0%"])
-const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0])
-
-const springConfig = { stiffness: 100, damping: 30, bounce: 0 }
-const scaleSpring = useSpring(scale, springConfig)
-const ySpring = useSpring(y, springConfig)
-const opacitySpring = useSpring(opacity, springConfig)
-
-const parallaxY = useTransform(scrollYProgress, [0, 1], ["0%", "100%"])
-
-const [wallet, setWallet] = useState({
-  address: '',
-  name: '',
-  connected: false
-});
-
-const connectWallet = async () => {
-
-}
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-}
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
-}
-
-const CountAnimation = ({ value }: { value: string }) => {
-  const [count, setCount] = useState(0)
-  const numberValue = parseInt(value.replace(/[^0-9]/g, ''))
-  
-  useEffect(() => {
-    const controls = animate(0, numberValue, {
-      duration: 2,
-      onUpdate: (value) => setCount(Math.floor(value))
+    const targetRef = useRef<HTMLDivElement>(null)
+    const { scrollYProgress } = useScroll({
+      target: targetRef,
+      offset: ["start start", "end start"]
     })
-    return () => controls.stop()
-  }, [numberValue])
-  
-  return <span>{count}K+</span>
-}
 
-const router = useRouter()
+    const scale = useTransform(scrollYProgress, [0, 0.7], [1.1, 0.8])
+    const y = useTransform(scrollYProgress, [0, 1], ["0%", "0%"])
+    const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0])
 
-const handleExplore = async () => {
-  // 创建过渡容器
-  const transition = document.createElement('div')
-  transition.style.cssText = `
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(to right, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-    z-index: 9999;
-    opacity: 0;
-    backdrop-filter: blur(8px);
-    pointer-events: none;
-  `
-  document.body.appendChild(transition)
+    const springConfig = { stiffness: 100, damping: 30, bounce: 0 }
+    const scaleSpring = useSpring(scale, springConfig)
+    const ySpring = useSpring(y, springConfig)
+    const opacitySpring = useSpring(opacity, springConfig)
 
-  // 添加动画效果
-  requestAnimationFrame(() => {
-    transition.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
-    transition.style.opacity = '1'
-  })
+    const parallaxY = useTransform(scrollYProgress, [0, 1], ["0%", "100%"])
 
-  // 等待过渡动画
-  await new Promise(resolve => setTimeout(resolve, 300))
+    const container = {
+      hidden: { opacity: 0 },
+      show: {
+        opacity: 1,
+        transition: {
+          staggerChildren: 0.1
+        }
+      }
+    }
 
-  // 执行跳转
-  router.push('/marketplace')
+    const item = {
+      hidden: { opacity: 0, y: 20 },
+      show: { opacity: 1, y: 0 }
+    }
 
-  // 在新页面加载后移除过渡效果
-  setTimeout(() => {
-    transition.style.opacity = '0'
-    setTimeout(() => {
-      transition.remove()
-    }, 600)
-  }, 100)
-}
+    const CountAnimation = ({ value }: { value: string }) => {
+      const [count, setCount] = useState(0)
+      const numberValue = parseInt(value.replace(/[^0-9]/g, ''))
+      
+      useEffect(() => {
+        const controls = animate(0, numberValue, {
+          duration: 2,
+          onUpdate: (value) => setCount(Math.floor(value))
+        })
+        return () => controls.stop()
+      }, [numberValue])
+      
+      return <span>{count}K+</span>
+    }
+
+    const router = useRouter()
+
+    const handleExplore = async () => {
+      // 创建过渡容器
+      const transition = document.createElement('div')
+      transition.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(to right, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+        z-index: 9999;
+        opacity: 0;
+        backdrop-filter: blur(8px);
+        pointer-events: none;
+      `
+      document.body.appendChild(transition)
+
+      // 添加动画效果
+      requestAnimationFrame(() => {
+        transition.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+        transition.style.opacity = '1'
+      })
+
+      // 等待过渡动画
+      await new Promise(resolve => setTimeout(resolve, 300))
+
+      // 执行跳转
+      router.push('/marketplace')
+
+      // 在新页面加载后移除过渡效果
+      setTimeout(() => {
+        transition.style.opacity = '0'
+        setTimeout(() => {
+          transition.remove()
+        }, 600)
+      }, 100)
+    }
+
+    // 添加钱包相关状态
+    const [account, setAccount] = useState("")
+    const [isConnected, setIsConnected] = useState(false)
+    const [chainId, setChainId] = useState<string>("")
+    const [isCorrectNetwork, setIsCorrectNetwork] = useState(false)
+
+    // 自动连接钱包
+    const autoConnectWallet = async () => {
+        if (typeof window.ethereum === "undefined") return;
+        
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            
+            if (accounts.length > 0) {
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                const isCorrectNetwork = chainId === '0x7A69';
+                
+                setAccount(accounts[0]);
+                setChainId(chainId);
+                setIsConnected(true);
+                setIsCorrectNetwork(isCorrectNetwork);
+
+                if (!isCorrectNetwork) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x7A69' }],
+                        });
+                    } catch (error) {
+                        console.error('切换网络失败:', error);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("自动连接失败:", error);
+        }
+    };
+
+    useEffect(() => {
+        autoConnectWallet();
+        
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', (newAccounts: string[]) => {
+                if (newAccounts.length === 0) {
+                    setAccount("");
+                    setIsConnected(false);
+                } else {
+                    setAccount(newAccounts[0]);
+                    setIsConnected(true);
+                }
+            });
+
+            window.ethereum.on('chainChanged', (newChainId: string) => {
+                setChainId(newChainId);
+                setIsCorrectNetwork(newChainId === '0x7A69');
+            });
+        }
+
+        return () => {
+            if (window.ethereum) {
+                window.ethereum.removeListener('accountsChanged', () => {});
+                window.ethereum.removeListener('chainChanged', () => {});
+            }
+        };
+    }, []);
+
     return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -238,45 +294,45 @@ const handleExplore = async () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-6 justify-center items-center mx-auto max-w-xl"
           >
-            {/* Connect Wallet Button */}
+            {/* Connect Wallet Button with Background Color */}
             <Button
-              size="lg"
-              onClick={connectWallet}
-              className="w-full sm:w-[200px] group wallet-button relative overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0 text-white shadow-lg hover:shadow-blue-200/50 transition-all duration-300"
-              disabled={wallet.connected}
+                variant="solid"  // 使用 solid 变体
+                size="lg"
+                className="w-full sm:w-[200px] group relative overflow-hidden bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-500 hover:to-violet-500 transition-all duration-300"
+                onClick={autoConnectWallet}
             >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
-                whileHover={{ scale: 1.05 }}
-              />
-              <Wallet className="mr-2 h-4 w-4" />
-              {wallet.connected ? (
-                <span className="flex items-center">
-                  {wallet.name}
-                  <Check className="ml-2 h-4 w-4 text-green-400" />
+                <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-primary/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    whileHover={{ scale: 1.2, rotate: 360 }}
+                    transition={{ duration: 0.8 }}
+                />
+                <Wallet className="mr-2 h-4 w-4 relative z-10" />
+                <span className="relative z-10">
+                    {isConnected ? (
+                        <>
+                            <div className="w-2 h-2 rounded-full bg-green-400 inline-block mr-2 animate-pulse" />
+                            {`${account.slice(0, 6)}...${account.slice(-4)}`}
+                        </>
+                    ) : (
+                        'Connect Wallet'
+                    )}
                 </span>
-              ) : (
-                <span className="flex items-center">
-                  Connect Wallet
-                  <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </span>
-              )}
             </Button>
 
             {/* Explore Collection Button */}
             <Button 
-              size="lg" 
-              variant="outline"
-              className="w-full sm:w-[200px] group relative overflow-hidden border-purple-500 hover:border-purple-600 text-purple-600 hover:text-purple-700 bg-white hover:bg-purple-50 transition-all duration-300"
-              onClick={handleExplore}
+                size="lg" 
+                variant="outline"
+                className="w-full sm:w-[200px] group relative overflow-hidden border-purple-500 hover:border-purple-600 text-purple-600 hover:text-purple-700 bg-white hover:bg-purple-50 transition-all duration-300"
+                onClick={handleExplore}
             >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-purple-50 to-purple-100/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                whileHover={{ scale: 1.05 }}
-              />
-              <BookOpen className="mr-2 h-4 w-4" />
-              Explore Collection
-              <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-purple-50 to-purple-100/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                    whileHover={{ scale: 1.05 }}
+                />
+                <BookOpen className="mr-2 h-4 w-4" />
+                Explore Collection
+                <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </motion.div>
         </motion.div>
