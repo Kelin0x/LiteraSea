@@ -137,7 +137,7 @@ export function PopularBooks() {
                     className="text-indigo-600 border-indigo-600 hover:bg-indigo-50"
                     onClick={fetchMarketNFTs}
                 >
-                    刷新列表
+                    Refresh Lists
                 </Button>
             </div>
 

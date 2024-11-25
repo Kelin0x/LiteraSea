@@ -114,23 +114,28 @@ const WhyChooseUsSection = () => {
             </div>
           </div>
 
-          {/* 右侧视频展示区 */}
+          {/* 右侧浮动图片展示区 */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             className="relative w-[600px] h-[680px] rounded-3xl overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 p-6 mx-auto"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
-            <div className="relative h-full rounded-2xl overflow-hidden bg-white/90 shadow-2xl">
-              <iframe
+            <div className="relative h-full rounded-2xl overflow-hidden bg-white/90 shadow-2xl flex items-center justify-center">
+              <img
+                src="/images/11.png"
+                alt="Floating Image"
                 className="absolute inset-0 w-full h-full object-cover"
-                src="https://www.youtube.com/embed/43sW3dovkyk"
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
               />
             </div>
+            {/* 悬浮元素 */}
+            <div className="absolute top-0 left-0 w-16 h-16 bg-blue-300 rounded-full filter blur-lg opacity-50 animate-pulse" />
+            <div className="absolute bottom-0 right-0 w-20 h-20 bg-purple-300 rounded-full filter blur-lg opacity-50 animate-pulse animation-delay-2000" />
+            <div className="absolute top-1/2 left-1/2 w-12 h-12 bg-pink-300 rounded-full filter blur-lg opacity-50 animate-pulse animation-delay-4000" />
+            {/* 悬浮书籍元素 */}
+            <div className="absolute top-10 left-10 w-12 h-16 bg-gradient-to-br from-yellow-300 to-red-300 rounded-md filter blur-sm opacity-70 animate-bounce" />
+            <div className="absolute bottom-10 right-10 w-14 h-18 bg-gradient-to-br from-green-300 to-blue-300 rounded-md filter blur-sm opacity-70 animate-bounce animation-delay-1500" />
+            <div className="absolute top-1/3 right-1/3 w-10 h-14 bg-gradient-to-br from-purple-300 to-pink-300 rounded-md filter blur-sm opacity-70 animate-bounce animation-delay-3000" />
           </motion.div>
         </div>
       </div>

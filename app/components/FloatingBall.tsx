@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { X, ChevronDown, Send } from "lucide-react"
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion"
+import { motion, AnimatePresence, useMotionValue } from "framer-motion"
 import Image from 'next/image'
 import { ethers } from "ethers"
 import { getNFTContract } from '@/utils/contract'
@@ -23,6 +23,60 @@ interface NFTItem {
     name: string;
     description: string;
 }
+
+// 提取 NFTSelector 组件
+const NFTSelector: React.FC<{ nfts: NFTItem[], onSelect: (nft: NFTItem) => void, isLoadingNFTs: boolean, isDarkMode: boolean }> = ({ nfts, onSelect, isLoadingNFTs, isDarkMode }) => (
+    <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className={`absolute bottom-20 right-0 w-64 rounded-lg shadow-xl overflow-hidden
+            ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
+    >
+        <div className={`p-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} flex justify-between items-center`}>
+            <h3 className="text-sm font-medium">选择 NFT</h3>
+            {isLoadingNFTs && (
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            )}
+        </div>
+        <div className="p-2 max-h-60 overflow-y-auto">
+            <div className="grid grid-cols-3 gap-2">
+                {isLoadingNFTs ? (
+                    <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
+                        加载中...
+                    </div>
+                ) : nfts.length === 0 ? (
+                    <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
+                        未找到 NFT，使用默认头像
+                    </div>
+                ) : (
+                    nfts.map((nft) => (
+                        <button
+                            key={nft.tokenId}
+                            onClick={() => onSelect(nft)}
+                            className="relative group rounded-lg overflow-hidden aspect-square"
+                        >
+                            <Image
+                                src={nft.image}
+                                alt={nft.name}
+                                width={80}
+                                height={80}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement
+                                    target.src = getDefaultAvatar(nft.tokenId)
+                                }}
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span className="text-white text-xs">使用此 NFT</span>
+                            </div>
+                        </button>
+                    ))
+                )}
+            </div>
+        </div>
+    </motion.div>
+);
 
 export function FloatingBall({
     bookTitle,
@@ -179,71 +233,6 @@ export function FloatingBall({
         }
     }
 
-    // NFT 选择器组件
-    const NFTSelector = () => (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className={`absolute bottom-20 right-0 w-64 rounded-lg shadow-xl overflow-hidden
-                ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
-        >
-            <div className={`p-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} flex justify-between items-center`}>
-                <h3 className="text-sm font-medium">选择 NFT</h3>
-                {isLoadingNFTs && (
-                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                )}
-            </div>
-            <div className="p-2 max-h-60 overflow-y-auto">
-                <div className="grid grid-cols-3 gap-2">
-                    {isLoadingNFTs ? (
-                        <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
-                            加载中...
-                        </div>
-                    ) : nfts.length === 0 ? (
-                        <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
-                            未找到 NFT，使用默认头像
-                        </div>
-                    ) : (
-                        nfts.map((nft) => (
-                            <button
-                                key={nft.tokenId}
-                                onClick={() => {
-                                    setAvatarUrl(nft.image)
-                                    setShowNFTSelector(false)
-                                    localStorage.setItem('selectedNFTAvatar', nft.image)
-                                    setCurrentNFTDescription(nft.description)
-                                    setMessages([{
-                                        type: 'bot',
-                                        content: `你好！我是你的阅读助手。我看到你选择了这本书的 NFT，NFT描述为："${nft.description}"。
-                                                作为NFT持有者，你将获得更专业的阅读指导。让我来为你解答关于《${bookTitle}》的任何问题。`
-                                    }])
-                                    setIsOpen(true)
-                                }}
-                                className="relative group rounded-lg overflow-hidden aspect-square"
-                            >
-                                <Image
-                                    src={nft.image}
-                                    alt={nft.name}
-                                    width={80}
-                                    height={80}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        const target = e.target as HTMLImageElement
-                                        target.src = getDefaultAvatar(nft.tokenId)
-                                    }}
-                                />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <span className="text-white text-xs">使用此 NFT</span>
-                                </div>
-                            </button>
-                        ))
-                    )}
-                </div>
-            </div>
-        </motion.div>
-    )
-
     // 在组件加载时获取 NFT 数据和描述
     useEffect(() => {
         const init = async () => {
@@ -318,12 +307,12 @@ export function FloatingBall({
                             content: message
                         }
                     ],
-                    temperature: 0.7,
-                    max_tokens: 800
+                    temperature: 0.9,
+                    max_tokens: 1000
                 },
                 {
                     headers: {
-                        'Authorization': `Bearer sk-OFUCZBgKEQnSG9T797353aE7E6E147D2Ba267e6aC8F9CfBd`,
+                        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_KEY}`,
                         'Content-Type': 'application/json'
                     },
                     timeout: 30000
@@ -491,7 +480,7 @@ export function FloatingBall({
             }}
         >
             <AnimatePresence>
-                {showNFTSelector && <NFTSelector />}
+                {showNFTSelector && <NFTSelector nfts={nfts} onSelect={handleNFTSelect} isLoadingNFTs={isLoadingNFTs} isDarkMode={isDarkMode} />}
                 {isOpen && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -560,6 +549,7 @@ export function FloatingBall({
                                     </div>
                                 </div>
                             ))}
+                            <div ref={messagesEndRef} />
                         </div>
 
                         {/* 输入区域 */}
@@ -652,7 +642,7 @@ export function FloatingBall({
                         onClick={() => setIsOpen(true)}
                     >
                         <span className="animate-pulse w-2 h-2 rounded-full bg-green-500"></span>
-                        点击开始聊天
+                        点击开始聊天吧！
                     </motion.div>
                 )}
             </motion.div>
