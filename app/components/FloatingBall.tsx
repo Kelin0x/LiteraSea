@@ -7,6 +7,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-mo
 import Image from 'next/image'
 import { ethers } from "ethers"
 import { getNFTContract } from '@/utils/contract'
+import axios from 'axios'
 
 interface FloatingBallProps {
     bookTitle: string;
@@ -21,11 +22,11 @@ interface NFTItem {
     name: string;
 }
 
-export function FloatingBall({ 
-    bookTitle, 
-    isDarkMode, 
+export function FloatingBall({
+    bookTitle,
+    isDarkMode,
     currentChapter,
-    onAskQuestion 
+    onAskQuestion
 }: FloatingBallProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [messages, setMessages] = useState<Array<{ type: 'user' | 'bot', content: string }>>([
@@ -67,7 +68,7 @@ export function FloatingBall({
             if (containerRef.current) {
                 const ballWidth = containerRef.current.offsetWidth
                 const ballHeight = containerRef.current.offsetHeight
-                
+
                 dragConstraints.current = {
                     left: -window.innerWidth + ballWidth + 20,
                     right: -20,
@@ -128,7 +129,7 @@ export function FloatingBall({
                 try {
                     const tokenId = await nftContract.tokenOfOwnerByIndex(address, i)
                     const tokenURI = await nftContract.tokenURI(tokenId)
-                    
+
                     let metadata
                     if (tokenURI.startsWith('{')) {
                         metadata = JSON.parse(tokenURI)
@@ -136,7 +137,7 @@ export function FloatingBall({
                         const response = await fetch(tokenURI)
                         metadata = await response.json()
                     }
-                    
+
                     nftList.push({
                         tokenId: tokenId.toString(),
                         image: metadata.image,
@@ -149,7 +150,7 @@ export function FloatingBall({
             }
 
             setNfts(nftList)
-            
+
             // 如果没有 NFT，使用默认头像
             if (nftList.length === 0) {
                 setAvatarUrl(getDefaultAvatar(bookTitle))
@@ -233,7 +234,7 @@ export function FloatingBall({
     // 在组件加载时获取 NFT
     useEffect(() => {
         fetchUserNFTs()
-        
+
         // 监听钱包账户变化
         if (window.ethereum) {
             window.ethereum.on('accountsChanged', fetchUserNFTs)
@@ -256,50 +257,114 @@ export function FloatingBall({
 
     // 添加加载状态
     const [isLoading, setIsLoading] = useState(false)
-    
-    // 处理消息发送
-    const handleSend = async () => {
+
+    // 添加 API 调用函数
+    const callChatAPI = async (message: string) => {
+        try {
+            const response = await axios.post(
+                'https://www.gptapi.us/v1/chat/completions',
+                {
+                    model: 'gpt-3.5-turbo',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `你是一个专业的阅读助手，具有以下特点和功能：
+                                1. 你正在帮助用户阅读《${bookTitle}》的"${currentChapter}"章节
+                                2. 你应该：
+                                   - 能够解释文中的难懂词句和典故
+                                   - 分析人物性格和情节发展
+                                   - 提供深入的文学赏析
+                                   - 联系历史背景进行解读
+                                   - 总结章节主要内容
+                                3. 回答要求：
+                                   - 回答要简洁明了，通常不超过200字
+                                   - 使用友好、专业的语气
+                                   - 如果不确定的内容，要诚实说明
+                                   - 鼓励读者思考和讨论
+                                4. 特别注意：
+                                   - 避免剧透后续内容
+                                   - 保持客观中立的态度
+                                   - 适时引导读者深入思考
+                                
+                                请基于以上设定来回答用户的问题。`
+                        },
+                        {
+                            role: 'user',
+                            content: message
+                        }
+                    ],
+                    temperature: 0.7,  // 控制回答的创造性，0.7 表示平衡稳定性和创造性
+                    max_tokens: 800,   // 限制回答长度
+                    presence_penalty: 0.3,  // 鼓励模型讨论新话题
+                    frequency_penalty: 0.3  // 减少重复内容
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer sk-OFUCZBgKEQnSG9T797353aE7E6E147D2Ba267e6aC8F9CfBd`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 30000
+                }
+            )
+
+            return response.data.choices[0].message.content
+        } catch (error: any) {
+            console.error('API 调用失败:', error)
+            if (error.response?.status === 429) {
+                return '抱歉，当前请求太多，请稍后再试。'
+            }
+            if (error.code === 'ECONNABORTED') {
+                return '抱歉，响应时间太长，请重试。'
+            }
+            throw error
+        }
+    }
+
+    // 修改 handleSend 函数，添加重试机制
+    const handleSend = async (retryCount = 0) => {
         if (!input.trim() || isLoading) return
 
         const userMessage = input.trim()
         setInput('')
-        
-        // 添加用户消息
-        setMessages(prev => [...prev, { 
-            type: 'user', 
-            content: userMessage 
+
+        setMessages(prev => [...prev, {
+            type: 'user',
+            content: userMessage
         }])
 
         setIsLoading(true)
 
         try {
-            // 调用父组件的问答函数
-            if (onAskQuestion) {
-                // 添加思考中的消息
-                setMessages(prev => [...prev, { 
-                    type: 'bot', 
-                    content: '思考中...' 
-                }])
+            setMessages(prev => [...prev, {
+                type: 'bot',
+                content: '思考中...'
+            }])
 
-                // 调用问答接口
-                const response = await onAskQuestion(userMessage)
+            const response = await callChatAPI(userMessage)
 
-                // 更新最后一条消息
+            setMessages(prev => {
+                const newMessages = [...prev]
+                newMessages[newMessages.length - 1] = {
+                    type: 'bot',
+                    content: response
+                }
+                return newMessages
+            })
+        } catch (error) {
+            if (retryCount < 2) { // 最多重试 2 次
+                setTimeout(() => {
+                    handleSend(retryCount + 1)
+                }, 1000 * (retryCount + 1)) // 递增重试延迟
+            } else {
                 setMessages(prev => {
                     const newMessages = [...prev]
                     newMessages[newMessages.length - 1] = {
                         type: 'bot',
-                        content: response || `关于《${bookTitle}》${currentChapter}的问题，我的回答是...`
+                        content: '抱歉，我遇到了一些问题，请稍后再试。'
                     }
                     return newMessages
                 })
             }
-        } catch (error) {
-            // 处理错误
-            setMessages(prev => [...prev, { 
-                type: 'bot', 
-                content: '抱歉，我遇到了一些问题，请稍后再试。' 
-            }])
         } finally {
             setIsLoading(false)
         }
@@ -307,7 +372,7 @@ export function FloatingBall({
 
     // 自动滚动到底部
     const messagesEndRef = useRef<HTMLDivElement>(null)
-    
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
@@ -317,7 +382,7 @@ export function FloatingBall({
     }, [messages])
 
     return (
-        <motion.div 
+        <motion.div
             ref={containerRef}
             className="fixed z-50"
             style={{
@@ -352,8 +417,8 @@ export function FloatingBall({
                     >
                         {/* 聊天头部 */}
                         <div className={`p-4 flex justify-between items-center cursor-default
-                            ${isDarkMode 
-                                ? 'bg-gradient-to-r from-gray-700 to-gray-800' 
+                            ${isDarkMode
+                                ? 'bg-gradient-to-r from-gray-700 to-gray-800'
                                 : 'bg-gradient-to-r from-blue-500 to-purple-500'
                             } text-white`}
                         >
@@ -398,13 +463,12 @@ export function FloatingBall({
                                             />
                                         </div>
                                     )}
-                                    <div className={`max-w-[80%] rounded-2xl p-3 ${
-                                        message.type === 'user'
+                                    <div className={`max-w-[80%] rounded-2xl p-3 ${message.type === 'user'
                                             ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
                                             : isDarkMode
                                                 ? 'bg-gray-700 text-gray-100'
                                                 : 'bg-white text-gray-800 shadow-sm'
-                                    }`}>
+                                        }`}>
                                         {message.content}
                                     </div>
                                 </div>
@@ -422,12 +486,12 @@ export function FloatingBall({
                                     placeholder={isLoading ? "AI is thinking..." : "Ask a question..."}
                                     disabled={isLoading}
                                     className={`flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500
-                                        ${isDarkMode 
-                                            ? 'bg-gray-700 text-gray-100 placeholder-gray-400' 
+                                        ${isDarkMode
+                                            ? 'bg-gray-700 text-gray-100 placeholder-gray-400'
                                             : 'bg-gray-100 text-gray-800 placeholder-gray-500'}
                                         ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 />
-                                <Button 
+                                <Button
                                     onClick={handleSend}
                                     disabled={isLoading}
                                     className={`rounded-xl px-4 ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : ''}
@@ -455,10 +519,10 @@ export function FloatingBall({
                 <Button
                     onClick={() => setIsOpen(!isOpen)}
                     className={`w-16 h-16 rounded-full shadow-lg overflow-hidden p-0
-                        ${isOpen 
-                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600' 
+                        ${isOpen
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600'
                             : isDarkMode
-                                ? 'bg-white hover:bg-gray-100' 
+                                ? 'bg-white hover:bg-gray-100'
                                 : 'bg-white hover:bg-gray-50'
                         }
                         transition-all duration-300 ease-in-out
@@ -477,7 +541,7 @@ export function FloatingBall({
                                     className="w-full h-full object-cover rounded-full transition-transform duration-300 group-hover:scale-110"
                                     onError={() => setAvatarUrl(getDefaultAvatar(bookTitle))}
                                 />
-                                <div 
+                                <div
                                     className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors cursor-pointer"
                                     onClick={handleAvatarClick}
                                 >
