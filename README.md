@@ -1,7 +1,7 @@
 # 🌊 LITERASEA
 
 <div align="center">
-  <img src="public/images/11.png" alt="Astronaut Fishing on a Planet" width="200" style="object-fit: cover; object-position: center; width: 320px; height: 450px; overflow: hidden;" />
+  <img src="public/images/11.png" alt="Astronaut Fishing on a Planet" width="200" style="object-fit: cover; object-position: center; width: 320px; height: 500px; overflow: hidden;" />
 </div>
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
