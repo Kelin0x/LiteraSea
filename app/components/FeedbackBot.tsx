@@ -17,25 +17,25 @@ interface DialogOption {
 const dialogOptions: DialogOption[] = [
   {
     id: '1',
-    text: 'What is this website?',
-    response: "Welcome! This is an online reading platform where you can discover and enjoy a vast collection of books. Let me show you around!",
+    text: 'What is Literasea?',
+    response: "Welcome to Literasea! It's a revolutionary platform that combines AI, Web3, and SocialFi to enhance digital reading experiences. Let me guide you through!",
     nextOptions: [
       {
         id: '1-1',
-        text: 'How do I start reading?',
-        response: "It's easy! You can:\n• Browse featured books on the homepage\n• Use categories on the left\n• Search for specific titles\n• Click any book to start reading"
+        text: 'How do I start using it?',
+        response: "To get started:\n• Connect your Web3 wallet\n• Explore the NFT marketplace\n• Create and customize your AI agent\n• Read books with your AI companion"
       }
     ]
   },
   {
     id: '2',
     text: 'Tell me about the features',
-    response: "We've got some cool features:\n• Smart Bookmarks ✨\n• Note Taking System 📝\n• Night Mode 🌙\n• Cross-device Sync 📱",
+    response: "Literasea offers amazing features:\n• AI-Powered Companions 🤖\n• NFT Marketplace 🏪\n• Web3 Integration 🌐\n• SocialFi Book Reviews 💬",
     nextOptions: [
       {
         id: '2-1',
         text: 'How do these features work?',
-        response: "Once you're logged in, all features are automatically enabled. Your reading progress and notes are saved in real-time!"
+        response: "Our AI companions enhance your reading with personalized insights. You can trade AI agents in the marketplace, and enjoy secure ownership of digital assets through Web3."
       }
     ]
   },
@@ -49,7 +49,7 @@ const dialogOptions: DialogOption[] = [
 const FeedbackBot = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
-    { type: 'bot', content: 'Hi! 👋 I\'m your reading assistant. Would you like a quick tour?' }
+    { type: 'bot', content: 'Hi! 👋 I\'m your reading assistant. Would you like a quick tour of Literasea?' }
   ])
   const [currentOptions, setCurrentOptions] = useState(dialogOptions)
   const messagesEndRef = useRef<HTMLDivElement>(null)

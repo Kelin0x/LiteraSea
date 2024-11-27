@@ -20,38 +20,38 @@ const StackedCards: React.FC = () => {
 
     const cards: CardData[] = [
         {
-            title: "Blockchain Technology",
-            description: "Secure and transparent transactions powered by smart contracts",
-            gradient: "from-blue-500 to-cyan-500",
+            title: "AI-Powered Companions",
+            description: "Enhance your reading experience with personalized AI insights",
+            gradient: "from-blue-500 to-purple-500",
             icon: <Code2 className="w-8 h-8 text-white" />
         },
         {
-            title: "Unique Authentication",
-            description: "Each book is a unique NFT with verified authenticity",
-            gradient: "from-purple-500 to-pink-500",
+            title: "Create Your AI",
+            description: "Design and upload your own AI agents with custom prompts and assets",
+            gradient: "from-green-500 to-teal-500",
             icon: <Fingerprint className="w-8 h-8 text-white" />
         },
         {
-            title: "Digital Ownership",
-            description: "True ownership of your digital book collection",
-            gradient: "from-green-500 to-emerald-500",
-            icon: <BookOpenCheck className="w-8 h-8 text-white" />
-        },
-        {
-            title: "Trading Platform",
-            description: "Buy, sell, and trade your NFT books seamlessly",
+            title: "NFT Marketplace",
+            description: "Buy and sell AI agents, each with unique characteristics and abilities",
             gradient: "from-yellow-500 to-orange-500",
             icon: <Coins className="w-8 h-8 text-white" />
         },
         {
-            title: "Secure Storage",
-            description: "Your digital assets are protected and encrypted",
+            title: "Explore Books",
+            description: "Access a vast collection of books with the help of your AI companions",
+            gradient: "from-purple-500 to-pink-500",
+            icon: <BookOpenCheck className="w-8 h-8 text-white" />
+        },
+        {
+            title: "Web3 Integration",
+            description: "Secure and verifiable ownership of your AI agents and digital assets",
             gradient: "from-red-500 to-rose-500",
             icon: <Shield className="w-8 h-8 text-white" />
         },
         {
-            title: "Community Features",
-            description: "Connect with readers and authors worldwide",
+            title: "SocialFi Book Reviews",
+            description: "Write and view unique reviews for books, see others' insights directly within the book",
             gradient: "from-red-500 to-violet-500",
             icon: <Users className="w-8 h-8 text-white" />
         }

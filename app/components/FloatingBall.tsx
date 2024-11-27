@@ -34,7 +34,7 @@ const NFTSelector: React.FC<{ nfts: NFTItem[], onSelect: (nft: NFTItem) => void,
             ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
     >
         <div className={`p-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} flex justify-between items-center`}>
-            <h3 className="text-sm font-medium">选择 NFT</h3>
+            <h3 className="text-sm font-medium">Select NFT</h3>
             {isLoadingNFTs && (
                 <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             )}
@@ -43,11 +43,11 @@ const NFTSelector: React.FC<{ nfts: NFTItem[], onSelect: (nft: NFTItem) => void,
             <div className="grid grid-cols-3 gap-2">
                 {isLoadingNFTs ? (
                     <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
-                        加载中...
+                        Loading...
                     </div>
                 ) : nfts.length === 0 ? (
                     <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
-                        未找到 NFT，使用默认头像
+                        No NFT found, using default avatar
                     </div>
                 ) : (
                     nfts.map((nft) => (
@@ -68,7 +68,7 @@ const NFTSelector: React.FC<{ nfts: NFTItem[], onSelect: (nft: NFTItem) => void,
                                 }}
                             />
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <span className="text-white text-xs">使用此 NFT</span>
+                                <span className="text-white text-xs">Use this NFT</span>
                             </div>
                         </button>
                     ))
@@ -89,12 +89,12 @@ export function FloatingBall({
     const [messages, setMessages] = useState<Array<{ type: 'user' | 'bot', content: string }>>([
         { 
             type: 'bot', 
-            content: `你好！我是你的阅读助手，很高兴为你解答关于《${bookTitle}》的任何问题。`
+            content: `Hello! I'm your reading assistant, happy to answer any questions about "${bookTitle}".`
         }
     ])
     const [input, setInput] = useState('')
     const containerRef = useRef<HTMLDivElement>(null)
-    const [avatarUrl, setAvatarUrl] = useState<string>(`https://api.dicebear.com/7.x/bottts/svg?seed=${bookTitle}`)
+    const [avatarUrl, setAvatarUrl] = useState<string>('https://api.dicebear.com/7.x/bottts/svg?seed=defaultAvatar')
     const [nfts, setNfts] = useState<NFTItem[]>([])
     const [showNFTSelector, setShowNFTSelector] = useState(false)
     const [isLoadingNFTs, setIsLoadingNFTs] = useState(false)
@@ -160,7 +160,7 @@ export function FloatingBall({
 
     // 获取默认头像
     const getDefaultAvatar = (seed: string) => {
-        return `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`
+        return 'https://api.dicebear.com/7.x/bottts/svg?seed=defaultAvatar'
     }
 
     // 获取用户的所有 NFT
@@ -274,24 +274,24 @@ export function FloatingBall({
     const callChatAPI = async (message: string) => {
         try {
             const systemContent = currentNFTDescription 
-                ? `你是一个专业的阅读助手，具有以下特点和功能：
-                    1. 你正在帮助用户阅读《${bookTitle}》的"${currentChapter}"章节
-                    2. 用户拥有这本书的 NFT，描述为：${currentNFTDescription}
-                    3. 你应该：
-                       - 能够解释文中的难懂词句和典故
-                       - 分析人物性格和情节发展
-                       - 提供深入的文学赏析
-                       - 联系历史背景进行解读
-                       - 总结章节主要内容
-                       - 结合 NFT 描述提供独特见解`
-                : `你是一个专业的阅读助手，具有以下特点和功能：
-                    1. 你正在帮助用户阅读《${bookTitle}》的"${currentChapter}"章节
-                    2. 你应该：
-                       - 能够解释文中的难懂词句和典故
-                       - 分析人物性格和情节发展
-                       - 提供深入的文学赏析
-                       - 联系历史背景进行解读
-                       - 总结章节主要内容`
+                ? `You are a professional reading assistant with the following features and functions:
+                    1. You are helping the user read the "${currentChapter}" chapter of "${bookTitle}".
+                    2. The user owns an NFT of this book, description: ${currentNFTDescription}
+                    3. You should:
+                       - Explain difficult words and idioms in the text
+                       - Analyze character personalities and plot developments
+                       - Provide in-depth literary analysis
+                       - Connect historical backgrounds for interpretation
+                       - Summarize the main points of the chapter
+                       - Provide unique insights based on the NFT description`
+                : `You are a professional reading assistant with the following features and functions:
+                    1. You are helping the user read the "${currentChapter}" chapter of "${bookTitle}".
+                    2. You should:
+                       - Explain difficult words and idioms in the text
+                       - Analyze character personalities and plot developments
+                       - Provide in-depth literary analysis
+                       - Connect historical backgrounds for interpretation
+                       - Summarize the main points of the chapter`
 
             const response = await axios.post(
                 'https://www.gptapi.us/v1/chat/completions',
@@ -336,6 +336,15 @@ export function FloatingBall({
     const handleSend = async (retryCount = 0) => {
         if (!input.trim() || isLoading) return
 
+        // 检查是否选择了 NFT
+        if (!avatarUrl || avatarUrl === 'https://api.dicebear.com/7.x/bottts/svg?seed=defaultAvatar') {
+            setMessages(prev => [...prev, {
+                type: 'bot',
+                content: 'Please select an NFT before using the chat service.'
+            }])
+            return
+        }
+
         const userMessage = input.trim()
         setInput('')
 
@@ -349,7 +358,7 @@ export function FloatingBall({
         try {
             setMessages(prev => [...prev, {
                 type: 'bot',
-                content: '思考中...'
+                content: 'Thinking...'
             }])
 
             const response = await callChatAPI(userMessage)
@@ -372,7 +381,7 @@ export function FloatingBall({
                     const newMessages = [...prev]
                     newMessages[newMessages.length - 1] = {
                         type: 'bot',
-                        content: '抱歉，我遇到了一些问题，请稍后再试。'
+                        content: 'Sorry, I encountered some issues. Please try again later.'
                     }
                     return newMessages
                 })
@@ -426,8 +435,8 @@ export function FloatingBall({
                         // 更新欢迎消息
                         setMessages([{
                             type: 'bot',
-                            content: `你好！我是你的阅读助手。我看到你拥有这本书的 NFT，NFT描述为："${metadata.description || '这个 NFT 暂无描述'}"。
-                                    作为NFT持有者，你将获得更专业的阅读指导。让我来为你解答关于《${bookTitle}》的任何问题。`
+                            content: `Hello! I'm your reading assistant. I see you own an NFT of this book, NFT description: "${metadata.description || 'This NFT has no description'}"
+                                     As an NFT owner, you will receive more professional reading guidance. Let me help you with any questions about "${bookTitle}".`
                         }])
                         break
                     }
@@ -451,8 +460,8 @@ export function FloatingBall({
         // 更新欢迎消息
         setMessages([{
             type: 'bot',
-            content: `你好！我是你的阅读助手。我看到你选择了这个 NFT，NFT描述为："${nft.description}"。
-                    让我来为你解答关于《${bookTitle}》的任何问题。`
+            content: `Hello! I'm your reading assistant. I see you selected this NFT, NFT description: "${nft.description}"
+                     Let me help you with any questions about "${bookTitle}".`
         }])
         setIsOpen(true)
     }
@@ -490,8 +499,11 @@ export function FloatingBall({
                         className={`absolute bottom-20 right-0 w-96 rounded-2xl shadow-2xl overflow-hidden
                             ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}
                         onPointerDown={(e) => e.stopPropagation()}
+                        drag
+                        dragConstraints={dragConstraints.current}
+                        onDragEnd={handleDragEnd}
                     >
-                        {/* 聊天头部 */}
+                        {/* Chat Header */}
                         <div className={`p-4 flex justify-between items-center cursor-default
                             ${isDarkMode
                                 ? 'bg-gradient-to-r from-gray-700 to-gray-800'
@@ -507,7 +519,7 @@ export function FloatingBall({
                                             width={36}
                                             height={36}
                                             className="w-full h-full object-cover rounded-full"
-                                            onError={() => setAvatarUrl(`https://api.dicebear.com/7.x/bottts/svg?seed=${bookTitle}`)}
+                                            onError={() => setAvatarUrl(getDefaultAvatar(bookTitle))}
                                         />
                                     </div>
                                 </div>
@@ -517,8 +529,7 @@ export function FloatingBall({
                                 </div>
                             </div>
                         </div>
-
-                        {/* 消息区域 */}
+                        {/* Message Area */}
                         <div className={`h-[400px] overflow-y-auto p-4 space-y-4 cursor-default
                             ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}
                         >
@@ -551,8 +562,7 @@ export function FloatingBall({
                             ))}
                             <div ref={messagesEndRef} />
                         </div>
-
-                        {/* 输入区域 */}
+                        {/* Input Area */}
                         <div className={`p-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                             <div className="flex gap-3">
                                 <input
@@ -585,8 +595,7 @@ export function FloatingBall({
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* 悬浮球按钮也使用 NFT 头像 */}
+            {/* Floating Ball Button with NFT Avatar */}
             <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -630,8 +639,7 @@ export function FloatingBall({
                         </div>
                     )}
                 </Button>
-
-                {/* 添加聊天按钮提示 */}
+                {/* Add Chat Button Tooltip */}
                 {!isOpen && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -642,7 +650,7 @@ export function FloatingBall({
                         onClick={() => setIsOpen(true)}
                     >
                         <span className="animate-pulse w-2 h-2 rounded-full bg-green-500"></span>
-                        点击开始聊天吧！
+                        Click to start chatting!
                     </motion.div>
                 )}
             </motion.div>
