@@ -156,7 +156,7 @@ const CallToAction = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 size="lg"
-                variant="solid"
+                variant="default"
                 className="px-8 py-6 text-lg font-bold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
                            hover:from-indigo-400 hover:to-pink-400 transition-all duration-300 shadow-lg hover:shadow-xl
                            transform hover:scale-105"

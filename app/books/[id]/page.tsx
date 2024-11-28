@@ -12,5 +12,14 @@ export default function ReadPage({ params }: { params: { id: string } }) {
   const book = books.find(b => b.id === params.id)
   if (!book) return <div>找不到书籍...</div>
   
-  return <ReadingView book={book} />
+  // 将 chapters 中的 id 转换为 number 类型
+  const updatedBook = {
+    ...book,
+    chapters: book.chapters.map(chapter => ({
+      ...chapter,
+      id: Number(chapter.id)
+    }))
+  }
+  
+  return <ReadingView book={updatedBook} />
 }

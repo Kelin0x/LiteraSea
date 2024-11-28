@@ -8,6 +8,12 @@ import { ethers } from 'ethers'
 import { toast } from 'react-hot-toast'
 import { getCommentContract } from '@/utils/contract'
 
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
+
 interface Chapter {
   id: number
   title: string

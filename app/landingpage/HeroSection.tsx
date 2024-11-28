@@ -296,7 +296,7 @@ const HeroSection = () => {
           >
             {/* Connect Wallet Button with Background Color */}
             <Button
-                variant="solid"  // 使用 solid 变体
+                variant="default"  // 使用 solid 变体
                 size="lg"
                 className="w-full sm:w-[200px] group relative overflow-hidden bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-500 hover:to-violet-500 transition-all duration-300"
                 onClick={autoConnectWallet}

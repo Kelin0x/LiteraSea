@@ -25,58 +25,61 @@ interface NFTItem {
 }
 
 // 提取 NFTSelector 组件
-const NFTSelector: React.FC<{ nfts: NFTItem[], onSelect: (nft: NFTItem) => void, isLoadingNFTs: boolean, isDarkMode: boolean }> = ({ nfts, onSelect, isLoadingNFTs, isDarkMode }) => (
-    <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className={`absolute bottom-20 right-0 w-64 rounded-lg shadow-xl overflow-hidden
-            ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
-    >
-        <div className={`p-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} flex justify-between items-center`}>
-            <h3 className="text-sm font-medium">Select NFT</h3>
-            {isLoadingNFTs && (
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            )}
-        </div>
-        <div className="p-2 max-h-60 overflow-y-auto">
-            <div className="grid grid-cols-3 gap-2">
-                {isLoadingNFTs ? (
-                    <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
-                        Loading...
-                    </div>
-                ) : nfts.length === 0 ? (
-                    <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
-                        No NFT found, using default avatar
-                    </div>
-                ) : (
-                    nfts.map((nft) => (
-                        <button
-                            key={nft.tokenId}
-                            onClick={() => onSelect(nft)}
-                            className="relative group rounded-lg overflow-hidden aspect-square"
-                        >
-                            <Image
-                                src={nft.image}
-                                alt={nft.name}
-                                width={80}
-                                height={80}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    const target = e.target as HTMLImageElement
-                                    target.src = getDefaultAvatar(nft.tokenId)
-                                }}
-                            />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <span className="text-white text-xs">Use this NFT</span>
-                            </div>
-                        </button>
-                    ))
+const NFTSelector: React.FC<{ nfts: NFTItem[], onSelect: (nft: NFTItem) => void, isLoadingNFTs: boolean, isDarkMode: boolean }> = ({ nfts, onSelect, isLoadingNFTs, isDarkMode }) => {
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className={`absolute bottom-20 right-0 w-64 rounded-lg shadow-xl overflow-hidden
+                ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
+        >
+            <div className={`p-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} flex justify-between items-center`}>
+                <h3 className="text-sm font-medium">Select NFT</h3>
+                {isLoadingNFTs && (
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 )}
             </div>
-        </div>
-    </motion.div>
-);
+            <div className="p-2 max-h-60 overflow-y-auto">
+                <div className="grid grid-cols-3 gap-2">
+                    {isLoadingNFTs ? (
+                        <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
+                            Loading...
+                        </div>
+                    ) : nfts.length === 0 ? (
+                        <div className="col-span-3 py-4 text-center text-gray-500 text-sm">
+                            No NFT found, using default avatar
+                        </div>
+                    ) : (
+                        nfts.map((nft) => (
+                            <button
+                                key={nft.tokenId}
+                                onClick={() => onSelect(nft)}
+                                className="relative group rounded-lg overflow-hidden aspect-square"
+                            >
+                                <Image
+                                    src={nft.image}
+                                    alt={nft.name}
+                                    width={80}
+                                    height={80}
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span className="text-white text-xs">Use this NFT</span>
+                                </div>
+                            </button>
+                        ))
+                    )}
+                </div>
+            </div>
+        </motion.div>
+    )
+}
+
+// 提取 getDefaultAvatar 函数到组件外部
+const getDefaultAvatar = (seed: string) => {
+    return 'https://api.dicebear.com/7.x/bottts/svg?seed=defaultAvatar'
+}
 
 export function FloatingBall({
     bookTitle,
@@ -156,11 +159,6 @@ export function FloatingBall({
     // 添加吸附效果
     const snapTo = (value: number, threshold: number) => {
         return Math.abs(value) < threshold ? 0 : value
-    }
-
-    // 获取默认头像
-    const getDefaultAvatar = (seed: string) => {
-        return 'https://api.dicebear.com/7.x/bottts/svg?seed=defaultAvatar'
     }
 
     // 获取用户的所有 NFT
@@ -579,10 +577,9 @@ export function FloatingBall({
                                         ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 />
                                 <Button
-                                    onClick={handleSend}
+                                    onClick={() => handleSend()}
                                     disabled={isLoading}
-                                    className={`rounded-xl px-4 ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : ''}
-                                        ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`rounded-xl px-4 ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                                 >
                                     {isLoading ? (
                                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
