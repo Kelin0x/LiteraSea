@@ -174,7 +174,7 @@ export function PopularBooks() {
                                         disabled={processingStates.get(nft.itemId!)}
                                         className="bg-indigo-600 hover:bg-indigo-700 text-white"
                                     >
-                                        {processingStates.get(nft.itemId!) ? "处理中..." : "购买"}
+                                        {processingStates.get(nft.itemId!) ? "Procsssing..." : "Buy Now"}
                                     </Button>
                                 </div>
                             </div>

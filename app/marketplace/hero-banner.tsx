@@ -4,8 +4,19 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { BookOpen, Sparkles, Star, BookOpenCheck, Bookmark, Coffee, Heart, Quote } from 'lucide-react'
+import { useState, useEffect } from 'react';
 
 export function HeroBanner() {
+    const [particleStyles, setParticleStyles] = useState<{ top: string, left: string }[]>([]);
+
+    useEffect(() => {
+        const styles = Array.from({ length: 8 }).map(() => ({
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+        }));
+        setParticleStyles(styles);
+    }, []);
+
     // 悬浮元素数据
     const floatingElements = [
         { icon: BookOpenCheck, color: "text-blue-500", size: "w-6 h-6", position: "top-20 left-10" },
@@ -77,14 +88,11 @@ export function HeroBanner() {
             ))}
 
             {/* 漂浮的粒子效果 */}
-            {Array.from({ length: 8 }).map((_, i) => (
+            {particleStyles.map((style, i) => (
                 <motion.div
                     key={`particle-${i}`}
                     className="absolute w-1 h-1 bg-indigo-600/30 rounded-full"
-                    style={{
-                        top: `${Math.random() * 100}%`,
-                        left: `${Math.random() * 100}%`,
-                    }}
+                    style={style}
                     animate={{
                         y: [0, -30, 0],
                         opacity: [0, 1, 0],
@@ -175,13 +183,7 @@ export function HeroBanner() {
                                 ease: "easeInOut"
                             }}
                         >
-                            <Image
-                                src="/hero-books.png"
-                                alt="Floating books illustration"
-                                width={600}
-                                height={600}
-                                className="object-cover"
-                            />
+
                         </motion.div>
                     </div>
 
