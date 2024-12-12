@@ -115,6 +115,10 @@ We welcome contributions from the community! Please follow these steps to contri
 
 ## 🤔 FAQ
 
+  "NFT_CONTRACT_ADDRESS": "0x4Ae98b16E13EA366ee53F76FBbE5A8F9eEC9DEF5",
+  "MARKETPLACE_CONTRACT_ADDRESS": "0xA6E3516BB15895a6c62b09aE9426Aca1f2f1E2BE",
+  "COMMENT_CONTRACT_ADDRESS": "0xba88B5c19292270dD6F824B33517c679da3e6EC5"
+  
 **Q: What makes Literasea different from traditional e-book platforms?**  
 A: Literasea combines blockchain technology with AI, offering unique AI companions that enhance digital reading experiences.
 
