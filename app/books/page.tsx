@@ -7,7 +7,6 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Header } from "../marketplace/header"
 import { Search, BookOpen, Sparkles } from "lucide-react"
-import type { Metadata } from 'next'
 
 // 更新为英文数据
 const BOOKS_DATA = [
@@ -119,28 +118,6 @@ const PathAnimation = () => (
     />
   </svg>
 );
-
-export const metadata: Metadata = {
-  title: 'Digital Books Marketplace | Browse Our Collection',
-  description: 'Explore our vast collection of digital books across multiple genres including Sci-Fi, Literature, History, and more.',
-  keywords: ['digital books', 'ebooks', 'online books', 'sci-fi books', 'literature', 'history books', 'novel'],
-  openGraph: {
-    title: 'Digital Books Marketplace | Browse Our Collection',
-    description: 'Explore our vast collection of digital books across multiple genres.',
-    type: 'website',
-    images: ['/og-image.jpg'],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Digital Books Marketplace',
-    description: 'Explore our vast collection of digital books across multiple genres.',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  // canonical: 'https://literasea-two.vercel.app/books',
-}
 
 export default function Books() {
   const [selectedCategory, setSelectedCategory] = useState("All");
