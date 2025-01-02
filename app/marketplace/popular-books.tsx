@@ -129,9 +129,18 @@ export function PopularBooks() {
     }, []);
 
     return (
-        <section className="mt-24">
+        <section 
+          className="mt-24"
+          itemScope 
+          itemType="https://schema.org/ItemList"
+        >
             <div className="flex justify-between items-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900">NFT Marketplace</h2>
+                <h2 
+                  className="text-3xl font-bold text-gray-900"
+                  itemProp="name"
+                >
+                  NFT Marketplace
+                </h2>
                 <Button
                     variant="outline"
                     className="text-indigo-600 border-indigo-600 hover:bg-indigo-50"
@@ -150,31 +159,59 @@ export function PopularBooks() {
                     {error}
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
-                    {marketNFTs.map((nft) => (
-                        <div key={nft.itemId} className="group space-y-4 hover:scale-105 transition-transform duration-200">
-                            <div className="aspect-[3/4] relative rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-200">
+                <div 
+                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8"
+                  role="list"
+                >
+                    {marketNFTs.map((nft, index) => (
+                        <div 
+                          key={nft.itemId} 
+                          className="group space-y-4 hover:scale-105 transition-transform duration-200"
+                          itemScope 
+                          itemType="https://schema.org/Product"
+                          itemProp="itemListElement"
+                          role="listitem"
+                        >
+                            <div className="aspect-[3/4] relative rounded-xl overflow-hidden shadow-lg">
                                 <Image
                                     src={nft.image}
                                     alt={nft.name}
                                     fill
-                                    className="object-cover transform group-hover:scale-110 transition-transform duration-200"
+                                    className="object-cover"
+                                    itemProp="image"
+                                    priority={index < 6}
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="font-medium text-gray-900 text-lg">{nft.name}</h3>
-                                <p className="text-sm text-gray-600 line-clamp-2">{nft.description}</p>
-                                <div className="flex items-center justify-between">
+                                <h3 
+                                  className="font-medium text-gray-900 text-lg"
+                                  itemProp="name"
+                                >
+                                  {nft.name}
+                                </h3>
+                                <p 
+                                  className="text-sm text-gray-600 line-clamp-2"
+                                  itemProp="description"
+                                >
+                                  {nft.description}
+                                </p>
+                                <div 
+                                  className="flex items-center justify-between"
+                                  itemProp="offers"
+                                  itemScope 
+                                  itemType="https://schema.org/Offer"
+                                >
                                     <div className="text-indigo-600 font-medium">
-                                        {nft.price} ETH
+                                        <meta itemProp="priceCurrency" content="ETH" />
+                                        <span itemProp="price">{nft.price}</span> ETH
                                     </div>
                                     <Button
                                         onClick={() => handleBuyNFT(nft.itemId!, nft.price!)}
                                         disabled={processingStates.get(nft.itemId!)}
                                         className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                        aria-label={`Buy ${nft.name}`}
                                     >
-                                        {processingStates.get(nft.itemId!) ? "Procsssing..." : "Buy Now"}
+                                        {processingStates.get(nft.itemId!) ? "Processing..." : "Buy Now"}
                                     </Button>
                                 </div>
                             </div>

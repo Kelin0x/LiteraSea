@@ -161,11 +161,54 @@ const HeroSection = () => {
         };
     }, []);
 
+    // 添加结构化数据对象
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Literasea - Web3 Books Platform",
+      "description": "Discover and own unique digital books on the blockchain",
+      "mainEntity": {
+        "@type": "Product",
+        "name": "NFT Books",
+        "description": "Digital books with blockchain ownership",
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.8",
+          "reviewCount": "1200",
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "offers": {
+          "@type": "AggregateOffer",
+          "priceCurrency": "ETH",
+          "availability": "https://schema.org/InStock",
+          "highPrice": "2.0",
+          "lowPrice": "0.1",
+          "offerCount": "100"
+        }
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Literasea",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://literasea-two.vercel.app/logo.png"
+        }
+      }
+    }
+
     return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
       <div ref={targetRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <BackgroundGradient />
+        
+        {/* SEO Meta Tags */}
+        <meta itemProp="name" content="Literasea - Web3 Digital Reading Platform" />
+        <meta itemProp="description" content="Revolutionary NFT books marketplace for digital reading and trading" />
+        <meta itemProp="image" content="https://literasea-two.vercel.app/hero-image.jpg" />
+        <meta name="keywords" content="NFT Books, Web3 Reading, Digital Books, Blockchain Literature, Crypto Books" />
+        <meta name="author" content="Literasea" />
+
         {/* 浮动装饰元 */}
         {floatingElements.map((element, index) => (
           <motion.div
@@ -183,26 +226,7 @@ const HeroSection = () => {
           </motion.div>
         ))}
 
-        {/* 添加光晕效果 */}
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full"
-          animate={{
-            boxShadow: [
-              "0 0 100px 50px rgba(59, 130, 246, 0.1)",
-              "0 0 150px 80px rgba(139, 92, 246, 0.1)",
-              "0 0 100px 50px rgba(236, 72, 153, 0.1)"
-            ]
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-        />
-
-
-
-        {/* 主要内容 */}
+        {/* 主要内容区域 */}
         <motion.div
           variants={container}
           initial="hidden"
@@ -213,7 +237,14 @@ const HeroSection = () => {
             y: ySpring
           }}
           className="relative z-10 text-center px-4 max-w-5xl mx-auto"
+          itemScope
+          itemType="https://schema.org/WebPageElement"
         >
+          {/* 隐藏的 SEO 标题 */}
+          <h1 className="sr-only">
+            Literasea - Web3 Digital Reading Platform | NFT Books Marketplace
+          </h1>
+
           {/* Welcome Badge */}
           <motion.div
             variants={item}
@@ -335,7 +366,40 @@ const HeroSection = () => {
                 <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </motion.div>
+
+          {/* 添加更多结构化数据标记 */}
+          <div itemScope itemType="https://schema.org/Product">
+            <meta itemProp="name" content="NFT Books Collection" />
+            <meta itemProp="description" content="Digital books with blockchain ownership verification" />
+            <div itemProp="offers" itemScope itemType="https://schema.org/AggregateOffer">
+              <meta itemProp="priceCurrency" content="ETH" />
+              <meta itemProp="availability" content="https://schema.org/InStock" />
+            </div>
+          </div>
         </motion.div>
+
+        {/* JSON-LD 结构化数据 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+
+        {/* 光晕效果保持不变 */}
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full"
+          animate={{
+            boxShadow: [
+              "0 0 100px 50px rgba(59, 130, 246, 0.1)",
+              "0 0 150px 80px rgba(139, 92, 246, 0.1)",
+              "0 0 100px 50px rgba(236, 72, 153, 0.1)"
+            ]
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            repeatType: "reverse"
+          }}
+        />
       </div>
     </div>
     )

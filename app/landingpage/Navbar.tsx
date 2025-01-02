@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { BookOpen, Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-scroll'
+import Image from 'next/image'
 
 const Navbar = () => {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
@@ -12,6 +13,16 @@ const Navbar = () => {
   const [isConnected, setIsConnected] = useState(false)
   const [chainId, setChainId] = useState<string>("")
   const [isCorrectNetwork, setIsCorrectNetwork] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  // 监听滚动
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const connectWallet = async () => {
     if (typeof window.ethereum === "undefined") {
@@ -89,68 +100,88 @@ const Navbar = () => {
     };
   }, []);
 
+  // 导航链接数据
+  const navLinks = [
+    { id: 'hero', label: 'Home', ariaLabel: 'Navigate to Home section' },
+    { id: 'features', label: 'Features', ariaLabel: 'Explore our Features' },
+    { id: 'books', label: 'Books', ariaLabel: 'Browse our Books' },
+    { id: 'call', label: 'Contact', ariaLabel: 'Contact us' }
+  ]
+
   return (
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-300"
+      role="navigation"
+      aria-label="Main navigation"
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-background/80 backdrop-blur-md' : 'bg-transparent'
+      }`}
+      itemScope
+      itemType="https://schema.org/SiteNavigationElement"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center py-4">
-          {/* Logo */}
-          <div className="w-1/4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo Section */}
+          <div className="flex-shrink-0">
             <motion.div 
               className="flex items-center space-x-2 relative group"
               whileHover={{ scale: 1.05 }}
             >
-              <div className="absolute inset-0 bg-primary/20 blur-xl group-hover:blur-2xl transition-all duration-300 rounded-full" />
-              <BookOpen className="h-8 w-8 text-primary relative z-10" />
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 relative z-10">
-                Web3 Books
-              </span>
+              <Link
+                to="home"
+                smooth={true}
+                duration={500}
+                className="flex items-center"
+                aria-label="Go to homepage"
+                role="link"
+                tabIndex={0}
+              >
+                <div className="absolute inset-0 bg-primary/20 blur-xl group-hover:blur-2xl transition-all duration-300 rounded-full" />
+                <BookOpen className="h-8 w-8 text-primary relative z-10" aria-hidden="true" />
+                <span 
+                  className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 relative z-10"
+                  itemProp="name"
+                >
+                  Web3 Books
+                </span>
+              </Link>
             </motion.div>
           </div>
 
-          {/* Navigation Links - 中间部分占据 2/4 的宽度并居中 */}
-          <div className="w-2/4 hidden md:flex justify-center">
-            <div className="flex items-center space-x-12">
-              {['Home', 'Feature', 'Book', 'Call'].map((item, index) => (
-                <motion.div
-                  key={item}
-                  className="relative"
-                  onHoverStart={() => setHoverIndex(index)}
-                  onHoverEnd={() => setHoverIndex(null)}
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center space-x-12">
+            {navLinks.map((item, index) => (
+              <motion.div
+                key={item.id}
+                className="relative"
+                onHoverStart={() => setHoverIndex(index)}
+                onHoverEnd={() => setHoverIndex(null)}
+              >
+                <Link
+                  to={item.id}
+                  smooth={true}
+                  duration={500}
+                  className="text-foreground/80 hover:text-primary transition-colors relative z-10 py-2 px-4 cursor-pointer"
+                  aria-label={item.ariaLabel}
+                  role="link"
+                  tabIndex={0}
+                  itemProp="url"
                 >
-                  <Link
-                    to={item}
-                    smooth={true}
-                    duration={500}
-                    className="text-foreground/80 hover:text-primary transition-colors relative z-10 py-2 px-4 cursor-pointer"
-                  >
-                    {item.replace(/-/g, ' ')}
-                    <motion.div
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-full"
-                      initial={{ scaleX: 0 }}
-                      animate={{ scaleX: hoverIndex === index ? 1 : 0 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    {hoverIndex === index && (
-                      <motion.div
-                        className="absolute inset-0 bg-primary/10 -z-10 rounded-lg blur-sm"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.2 }}
-                      />
-                    )}
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+                  {item.label}
+                  <motion.div
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-full"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: hoverIndex === index ? 1 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </Link>
+              </motion.div>
+            ))}
           </div>
 
-          {/* Connect Button - 右侧占据 1/4 的宽度 */}
-          <div className="w-1/4 flex justify-end">
+          {/* Connect Wallet Button */}
+          <div className="flex items-center">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -162,17 +193,22 @@ const Navbar = () => {
                 className="hidden md:flex items-center gap-2 relative group overflow-hidden
                           border-primary/20 hover:border-primary/40 hover:bg-transparent"
                 onClick={connectWallet}
+                aria-label={isConnected ? "Connected Wallet" : "Connect Wallet"}
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-primary/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity"
                   whileHover={{ scale: 1.2, rotate: 360 }}
                   transition={{ duration: 0.8 }}
                 />
-                <Wallet className="h-4 w-4 relative z-10 text-primary/80" />
+                <Wallet className="h-4 w-4 relative z-10 text-primary/80" aria-hidden="true" />
                 <span className="relative z-10 text-primary/80">
                   {isConnected ? (
                     <>
-                      <div className="w-2 h-2 rounded-full bg-green-400 inline-block mr-2 animate-pulse" />
+                      <div 
+                        className="w-2 h-2 rounded-full bg-green-400 inline-block mr-2 animate-pulse"
+                        role="status"
+                        aria-label="Connected"
+                      />
                       {`${account.slice(0, 6)}...${account.slice(-4)}`}
                     </>
                   ) : (
@@ -184,6 +220,24 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+
+      {/* 添加结构化数据 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Web3 Books",
+            "url": "https://literasea-two.vercel.app",
+            "logo": "https://literasea-two.vercel.app/logo.png",
+            "sameAs": [
+              "https://twitter.com/web3books",
+              "https://discord.gg/web3books"
+            ]
+          })
+        }}
+      />
     </motion.nav>
   )
 }

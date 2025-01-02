@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://literasea.vercel.app
+
+# Sitemaps
+Sitemap: https://literasea.vercel.app/sitemap.xml

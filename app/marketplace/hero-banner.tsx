@@ -27,7 +27,11 @@ export function HeroBanner() {
     ]
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-10 md:p-16">
+        <div 
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-10 md:p-16"
+          itemScope 
+          itemType="https://schema.org/WPHeader"
+        >
             {/* 背景装饰 */}
             <div className="absolute inset-0 bg-grid-white/25 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]" />
             <div className="absolute -left-4 top-0 h-72 w-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob" />
@@ -127,9 +131,7 @@ export function HeroBanner() {
 
                         <motion.h1
                             className="text-4xl md:text-5xl lg:text-6xl font-bold text-indigo-900 leading-tight"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
+                            itemProp="headline"
                         >
                             Discover Your Next
                             <div className="relative inline-block ml-3">
@@ -142,9 +144,7 @@ export function HeroBanner() {
 
                         <motion.p
                             className="text-xl text-gray-600 max-w-lg"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.6 }}
+                            itemProp="description"
                         >
                             Embark on a journey through countless worlds. Each book opens a door to new possibilities.
                         </motion.p>
@@ -207,6 +207,23 @@ export function HeroBanner() {
                     </motion.div>
                 </motion.div>
             </div>
+
+            {/* 添加结构化数据 */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "WebPageElement",
+                        "name": "NFT Books Marketplace Hero",
+                        "description": "Discover and collect unique digital books",
+                        "isPartOf": {
+                            "@type": "WebPage",
+                            "name": "NFT Books Marketplace"
+                        }
+                    })
+                }}
+            />
         </div>
     )
 }
